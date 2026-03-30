@@ -7,9 +7,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -124,7 +122,24 @@
   body {
     @apply bg-background text-foreground;
   }
-  html {
-    @apply font-sans;
+  }
+.theme-transitioning::view-transition-old(root),
+.theme-transitioning::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+.theme-transitioning::view-transition-new(root) {
+  animation: wipe-in 0.8s cubic-bezier(0.25, 1, 0.3, 1) forwards;
+  z-index: 9999;
+}
+.theme-transitioning::view-transition-old(root) {
+  z-index: 1;
+}
+@keyframes wipe-in {
+  from {
+    clip-path: circle(0% at top right);
+  }
+  to {
+    clip-path: circle(160% at top right);
   }
 }

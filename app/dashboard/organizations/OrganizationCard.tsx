@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { 
   Building2, 
@@ -17,6 +16,13 @@ import {
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface OrganizationCardProps {
   org: any;
@@ -24,20 +30,7 @@ interface OrganizationCardProps {
 }
 
 export function OrganizationCard({ org, index }: OrganizationCardProps) {
-  const [showDropdown, setShowDropdown] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowDropdown(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
@@ -46,7 +39,6 @@ export function OrganizationCard({ org, index }: OrganizationCardProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminOrganizations'] });
-      setShowDropdown(false);
     }
   });
 
@@ -57,7 +49,6 @@ export function OrganizationCard({ org, index }: OrganizationCardProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminOrganizations'] });
-      setShowDropdown(false);
     }
   });
 
@@ -93,58 +84,62 @@ export function OrganizationCard({ org, index }: OrganizationCardProps) {
         </div>
 
         {/* Three Dots Multi-Action Menu */}
-        <div className="relative" ref={dropdownRef}>
-          <button 
-            onClick={() => setShowDropdown(!showDropdown)}
-            className={`p-2 rounded-lg transition-colors ${showDropdown ? 'bg-slate-100 dark:bg-slate-800 text-blue-600' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-          >
-            <MoreVertical className="h-5 w-5" />
-          </button>
-
-          <AnimatePresence>
-            {showDropdown && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                className="absolute right-0 mt-2 w-48 z-50 origin-top-right rounded-xl bg-white dark:bg-slate-800 shadow-xl ring-1 ring-black ring-opacity-5 p-1 border border-slate-100 dark:border-slate-700 focus:outline-none"
+        <div className="relative">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button 
+                className="p-2 rounded-lg transition-colors text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 outline-none"
               >
+                <MoreVertical className="h-5 w-5" />
+              </button>
+            </DropdownMenuTrigger>
+            
+            <DropdownMenuContent align="end" className="w-48 rounded-xl bg-white dark:bg-slate-800 shadow-xl ring-1 ring-black ring-opacity-5 p-1 border border-slate-100 dark:border-slate-700">
+              <DropdownMenuItem asChild className="cursor-pointer rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400 focus:bg-blue-50 dark:focus:bg-blue-500/10 focus:text-blue-600 dark:focus:text-blue-400 transition-colors">
                 <Link
                   href={`/dashboard/organizations/${org._id}`}
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 w-full"
                 >
                   <ExternalLink className="h-4 w-4" /> View Details
                 </Link>
-                
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem asChild className="cursor-pointer rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400 focus:bg-blue-50 dark:focus:bg-blue-500/10 focus:text-blue-600 dark:focus:text-blue-400 transition-colors">
                 <Link
                   href={`/dashboard/organizations/edit/${org._id}`}
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 w-full"
                 >
                   <Edit className="h-4 w-4" /> Edit Profile
                 </Link>
+              </DropdownMenuItem>
 
-                <button
-                  onClick={() => toggleStatusMutation.mutate()}
-                  disabled={toggleStatusMutation.isPending}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-amber-50 dark:hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-400 rounded-lg transition-colors disabled:opacity-50"
-                >
-                  {toggleStatusMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Power className="h-4 w-4" />}
-                  {org.status === 'active' ? 'Deactivate' : 'Activate'}
-                </button>
+              <DropdownMenuItem 
+                onClick={(e) => {
+                  e.preventDefault();
+                  toggleStatusMutation.mutate();
+                }}
+                disabled={toggleStatusMutation.isPending}
+                className="cursor-pointer rounded-lg hover:bg-amber-50 dark:hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-400 focus:bg-amber-50 dark:focus:bg-amber-500/10 focus:text-amber-600 dark:focus:text-amber-400 transition-colors w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300"
+              >
+                {toggleStatusMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Power className="h-4 w-4" />}
+                {org.status === 'active' ? 'Deactivate' : 'Activate'}
+              </DropdownMenuItem>
 
-                <div className="my-1 border-t border-slate-100 dark:border-slate-700" />
-                
-                <button
-                  onClick={() => deleteMutation.mutate()}
-                  disabled={deleteMutation.isPending}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50"
-                >
-                  {deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                  Delete Organization
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              <DropdownMenuSeparator className="my-1 border-t border-slate-100 dark:border-slate-700" />
+              
+              <DropdownMenuItem 
+                onClick={(e) => {
+                  e.preventDefault();
+                  deleteMutation.mutate();
+                }}
+                disabled={deleteMutation.isPending}
+                className="cursor-pointer rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 focus:bg-red-50 dark:focus:bg-red-500/10 focus:text-red-600 text-red-600 transition-colors w-full flex items-center gap-2 px-3 py-2 text-sm"
+              >
+                {deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                Delete Organization
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 

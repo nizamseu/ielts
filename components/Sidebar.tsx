@@ -10,11 +10,11 @@ import {
   ShieldAlert,
   CreditCard,
   LogOut,
-  Settings,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { signOut, useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 const navigation = [
   { 
@@ -53,7 +53,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session, isPending } = useSession();
-  const userRole = (session?.user as any)?.role;
+  const userRole = ((session?.user as unknown) as { role?: string })?.role;
 
   // Filter navigation by role - if loading, we show common items or nothing yet
   const filteredNavigation = navigation.filter(item => {
@@ -141,13 +141,14 @@ export function Sidebar() {
           </li>
 
           <li className="mt-auto -mx-2">
-            <button
+            <Button
+              variant="ghost"
               onClick={handleLogout}
-              className="group w-full flex gap-x-3 rounded-xl p-3 text-sm font-semibold leading-6 text-slate-700 hover:bg-red-50 hover:text-red-700 transition-colors dark:text-slate-400 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+              className="w-full flex justify-start gap-x-3 rounded-xl p-3 h-12 text-sm font-semibold text-slate-700 hover:bg-red-50 hover:text-red-700 transition-colors dark:text-slate-400 dark:hover:bg-red-900/20 dark:hover:text-red-400 group"
             >
               <LogOut className="h-5 w-5 shrink-0 text-slate-400 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors" />
               Sign Out
-            </button>
+            </Button>
           </li>
         </ul>
       </nav>

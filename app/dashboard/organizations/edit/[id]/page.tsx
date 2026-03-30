@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { motion } from 'framer-motion';
@@ -22,6 +22,16 @@ import {
   Save
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 // Schema matches backend organization.validator.js
 const formSchema = z.object({
@@ -55,6 +65,7 @@ export default function EditOrganizationPage() {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -149,9 +160,9 @@ export default function EditOrganizationPage() {
                 <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
                   Organization Name <span className="text-red-500">*</span>
                 </label>
-                <input 
+                <Input 
                   placeholder="e.g. Dream IELTS Academy"
-                  className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors.name ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium placeholder:text-slate-400`}
+                  className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors.name ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} rounded-xl px-4 py-6 text-sm focus-visible:ring-4 focus-visible:ring-blue-500/10 focus-visible:border-blue-500 transition-all font-medium placeholder:text-slate-400`}
                   {...register('name')}
                 />
                 {errors.name && <p className="text-xs font-medium text-red-500 mt-1">{errors.name.message}</p>}
@@ -162,18 +173,23 @@ export default function EditOrganizationPage() {
                   Institutional Type
                 </label>
                 <div className="relative group">
-                  <LayoutGrid className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-                  <select 
-                    {...register('type')}
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium appearance-none cursor-pointer"
-                  >
-                    <option value="coaching_center">Coaching Center</option>
-                    <option value="institution">Educational Institution</option>
-                    <option value="enterprise">Corporate Enterprise</option>
-                  </select>
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                    <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" /></svg>
-                  </div>
+                  <LayoutGrid className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors z-10 pointer-events-none" />
+                  <Controller
+                    name="type"
+                    control={control}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-11 pr-4 py-6 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium">
+                          <SelectValue placeholder="Select institution type" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-slate-200 dark:border-slate-700">
+                          <SelectItem value="coaching_center" className="rounded-lg">Coaching Center</SelectItem>
+                          <SelectItem value="institution" className="rounded-lg">Educational Institution</SelectItem>
+                          <SelectItem value="enterprise" className="rounded-lg">Corporate Enterprise</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 </div>
               </div>
 
@@ -182,14 +198,22 @@ export default function EditOrganizationPage() {
                   Status
                 </label>
                 <div className="relative group">
-                  <CheckCircle2 className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-                  <select 
-                    {...register('status')}
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium appearance-none cursor-pointer text-slate-700 dark:text-slate-300"
-                  >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
+                  <CheckCircle2 className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors z-10 pointer-events-none" />
+                  <Controller
+                    name="status"
+                    control={control}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-11 pr-4 py-6 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-slate-700 dark:text-slate-300">
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-slate-200 dark:border-slate-700">
+                          <SelectItem value="active" className="rounded-lg">Active</SelectItem>
+                          <SelectItem value="inactive" className="rounded-lg">Inactive</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 </div>
               </div>
             </div>
@@ -207,11 +231,11 @@ export default function EditOrganizationPage() {
                 <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Administrative Email</label>
                 <div className="relative group">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-                  <input 
+                  <Input 
                     type="email"
                     placeholder="contact@dreamielts.com"
                     {...register('email')}
-                    className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors.email ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium placeholder:text-slate-400`}
+                    className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors.email ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} rounded-xl pl-11 pr-4 py-6 text-sm focus-visible:ring-4 focus-visible:ring-blue-500/10 focus-visible:border-blue-500 transition-all font-medium placeholder:text-slate-400`}
                   />
                 </div>
                 {errors.email && <p className="text-xs font-medium text-red-500 mt-1">{errors.email.message}</p>}
@@ -221,10 +245,10 @@ export default function EditOrganizationPage() {
                 <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Contact Number</label>
                 <div className="relative group">
                   <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-                  <input 
+                  <Input 
                     placeholder="+880 1XXX-XXXXXX"
                     {...register('phone')}
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium placeholder:text-slate-400"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-11 pr-4 py-6 text-sm focus-visible:ring-4 focus-visible:ring-blue-500/10 focus-visible:border-blue-500 transition-all font-medium placeholder:text-slate-400"
                   />
                 </div>
               </div>
@@ -235,11 +259,11 @@ export default function EditOrganizationPage() {
             <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Headquarters Address</label>
             <div className="relative group">
               <MapPin className="absolute left-4 top-4 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-              <textarea 
+              <Textarea 
                 placeholder="Detailed street address, city, and postal code..."
                 {...register('address')}
                 rows={3}
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium placeholder:text-slate-400 resize-none"
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl pl-11 pr-4 py-3 text-sm focus-visible:ring-4 focus-visible:ring-blue-500/10 focus-visible:border-blue-500 transition-all font-medium placeholder:text-slate-400 resize-none min-h-[100px]"
               />
             </div>
           </div>
@@ -263,10 +287,10 @@ export default function EditOrganizationPage() {
             >
               Cancel
             </button>
-            <button
+            <Button
               type="submit"
               disabled={mutation.isPending}
-              className="min-w-[200px] flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-linear-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/25 text-sm font-bold text-white transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70"
+              className="min-w-[200px] h-12 flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-linear-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/25 text-sm font-bold text-white transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70"
             >
               {mutation.isPending ? (
                 <>
@@ -279,7 +303,7 @@ export default function EditOrganizationPage() {
                   Save Changes
                 </>
               )}
-            </button>
+            </Button>
           </div>
         </form>
       </motion.div>
