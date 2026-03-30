@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Building2, Plus, MoreVertical, MapPin, Mail, Phone, Loader2 } from 'lucide-react';
@@ -20,7 +21,7 @@ export default function OrganizationsPage() {
           <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Organizations</h2>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Manage all registered academies and coaching centers.</p>
         </div>
-        <button className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/20 px-4 py-2.5 text-sm font-semibold text-white transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+        <button className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/20 px-4 py-2.5 text-sm font-semibold text-white transition-all transform hover:scale-[1.02] active:scale-[0.98]">
           <Plus className="h-4 w-4" />
           Add Organization
         </button>
@@ -85,11 +86,14 @@ export default function OrganizationsPage() {
               <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <div className="flex flex-col">
                   <span className="text-xs font-medium text-slate-500">Active Students</span>
-                  <span className="text-lg font-semibold text-slate-900 dark:text-white">-</span>
+                  <span className="text-lg font-semibold text-slate-900 dark:text-white">{org.membersCount || '-'}</span>
                 </div>
-                <button className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
+                <Link 
+                  href={`/dashboard/organizations/${org._id}`}
+                  className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                >
                   View Details &rarr;
-                </button>
+                </Link>
               </div>
             </motion.div>
           ))}

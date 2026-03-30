@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { FileText, Clock, Play, Edit3, Trash2, Loader2 } from 'lucide-react';
+import { FileText, Clock, Plus, Edit3, Trash2, Loader2 } from 'lucide-react';
 
 export default function ExamsPage() {
   const { data: exams, isLoading, error } = useQuery({
@@ -20,8 +20,8 @@ export default function ExamsPage() {
           <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Exam Templates</h2>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Create and manage test structures for your students.</p>
         </div>
-        <button className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 shadow-md px-4 py-2.5 text-sm font-semibold transition-all transform hover:scale-[1.02] active:scale-[0.98]">
-          <Play className="h-4 w-4" />
+        <button className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/20 px-4 py-2.5 text-sm font-semibold text-white transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+          <Plus className="h-4 w-4" />
           Create Template
         </button>
       </div>

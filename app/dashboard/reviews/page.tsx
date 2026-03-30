@@ -62,10 +62,29 @@ export default function ReviewsPage() {
                    }`}>
                       {session.riskLevel === 'high' ? <AlertTriangle className="w-5 h-5" /> : <ShieldAlert className="w-5 h-5" />}
                    </div>
-                   <div>
-                      <h3 className="font-semibold text-slate-900 dark:text-white leading-tight">{session.userId?.name || session.studentName || 'Unknown Student'}</h3>
-                      <p className="text-xs text-slate-500">{new Date(session.createdAt || session.date).toLocaleDateString()}</p>
-                   </div>
+                    <div>
+                      <h3 className="font-semibold text-slate-900 dark:text-white leading-tight">
+                        {session.userId?.name || session.studentName || 'Unknown Student'}
+                      </h3>
+                      <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
+                        {(session.userId?.firstName || session.userId?.surname) && (
+                          <p className="text-[10px] bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-600 dark:text-slate-400 font-medium">
+                            Official: {session.userId?.firstName} {session.userId?.surname}
+                          </p>
+                        )}
+                        {session.userId?.passportNo && (
+                          <p className="text-[10px] bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5 rounded text-blue-600 dark:text-blue-400 font-medium">
+                            Passport: {session.userId?.passportNo}
+                          </p>
+                        )}
+                        {session.userId?.nationality && (
+                          <p className="text-[10px] bg-emerald-50 dark:bg-emerald-900/20 px-1.5 py-0.5 rounded text-emerald-600 dark:text-emerald-400 font-medium">
+                            {session.userId?.nationality}
+                          </p>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">{new Date(session.createdAt || session.date).toLocaleDateString()}</p>
+                    </div>
                 </div>
                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${
                    (session.riskLevel || 'low') === 'high' 
