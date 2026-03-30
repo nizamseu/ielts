@@ -61,29 +61,24 @@ export default function EditOrganizationPage() {
     enabled: !!orgId
   });
 
+  const org = detailData?.organization;
+
   const {
     register,
     handleSubmit,
-    reset,
     control,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
+    values: org ? {
+      name: org.name || '',
+      type: org.type || 'coaching_center',
+      email: org.email || '',
+      phone: org.phone || '',
+      address: org.address || '',
+      status: org.status || 'active',
+    } : undefined,
   });
-
-  useEffect(() => {
-    if (detailData?.organization) {
-      const org = detailData.organization;
-      reset({
-        name: org.name || '',
-        type: org.type || 'coaching_center',
-        email: org.email || '',
-        phone: org.phone || '',
-        address: org.address || '',
-        status: org.status || 'active',
-      });
-    }
-  }, [detailData, reset]);
 
   const mutation = useMutation({
     mutationFn: async (values: FormValues) => {
@@ -178,7 +173,7 @@ export default function EditOrganizationPage() {
                     name="type"
                     control={control}
                     render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                         <SelectTrigger className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-11 pr-4 py-6 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium">
                           <SelectValue placeholder="Select institution type" />
                         </SelectTrigger>
@@ -203,7 +198,7 @@ export default function EditOrganizationPage() {
                     name="status"
                     control={control}
                     render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                         <SelectTrigger className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-11 pr-4 py-6 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-slate-700 dark:text-slate-300">
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>
