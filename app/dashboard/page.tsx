@@ -5,9 +5,14 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Users, BookOpen, Activity, Loader2, Building2 } from 'lucide-react';
 
+import { authClient } from '@/lib/auth-client';
+
 export default function DashboardOverview() {
+  const { data: session } = authClient.useSession();
+  const userRole = (session?.user as any)?.role || 'student';
+
   const { data, isLoading, error } = useQuery({
-    queryKey: ['adminDashboard'],
+    queryKey: ['adminDashboard', userRole],
     queryFn: async () => {
       const response = await api.get('/api/admin/dashboard');
       return response.data;
@@ -25,7 +30,7 @@ export default function DashboardOverview() {
   if (error) {
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-600">
-        <p className="font-semibold">Failed to load dashboard statistics.</p>
+        <p className="font-semibold">Failed to load statistics.</p>
         <p className="text-sm mt-2 opacity-80 text-red-500">{(error as any).message}</p>
       </div>
     );
@@ -34,18 +39,44 @@ export default function DashboardOverview() {
   const metrics = data?.stats || {};
   const usage = data?.usage || {};
 
-  const stats = [
-    { name: 'Active Users', value: metrics.totalUsers?.toLocaleString() || '0', change: '', icon: Users },
-    { name: 'Total Organizations', value: metrics.totalOrganizations?.toLocaleString() || '0', change: '', icon: Building2 },
-    { name: 'Exams Created', value: metrics.totalExamTemplates?.toLocaleString() || '0', change: '', icon: BookOpen },
-    { name: 'Flagged Sessions', value: usage.flaggedSessionsCount?.toLocaleString() || '0', change: '', icon: Activity },
-  ];
+  // 🔥 Dynamically build stats based on role
+  const stats = [];
+  let dashboardTitle = 'Admin Overview';
+  let dashboardSub = 'High level overview of your Dream IELTS platform metrics.';
+  
+  if (userRole === 'platform_owner' || userRole === 'platform_admin') {
+    dashboardTitle = 'Platform Overview';
+    stats.push(
+      { name: 'Active Users', value: metrics.totalUsers?.toLocaleString() || '0', change: '', icon: Users },
+      { name: 'Total Organizations', value: metrics.totalOrganizations?.toLocaleString() || '0', change: '', icon: Building2 },
+      { name: 'Exams Taken', value: usage.totalExams?.toLocaleString() || '0', change: '', icon: BookOpen },
+      { name: 'Flagged Sessions', value: usage.flaggedSessionsCount?.toLocaleString() || '0', change: '', icon: Activity }
+    );
+  } else if (userRole.startsWith('org_')) {
+    dashboardTitle = 'Organization Dashboard';
+    dashboardSub = 'Manage your students and view performance metrics.';
+    stats.push(
+      { name: 'Our Students', value: metrics.totalUsers?.toLocaleString() || '0', change: '', icon: Users },
+      { name: 'Credits Used', value: usage.totalAIRequests?.toLocaleString() || '0', change: '', icon: Building2 },
+      { name: 'Exams Taken', value: usage.totalExams?.toLocaleString() || '0', change: '', icon: BookOpen },
+      { name: 'Flagged Sessions', value: usage.flaggedSessionsCount?.toLocaleString() || '0', change: '', icon: Activity }
+    );
+  } else {
+     // Student
+     dashboardTitle = 'Candidate Dashboard';
+     dashboardSub = 'Track your practice progress and prepare for IELTS.';
+     stats.push(
+      { name: 'My Exams', value: metrics.totalSessions?.toLocaleString() || '0', change: '', icon: BookOpen },
+      { name: 'Average Band', value: 'N/A', change: '', icon: Activity },
+      { name: 'Active Status', value: (session?.user as any)?.status || 'Active', change: '', icon: Users }
+    );
+  }
 
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Admin Overview</h2>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">High level overview of your Dream IELTS platform metrics.</p>
+        <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{dashboardTitle}</h2>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{dashboardSub}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
