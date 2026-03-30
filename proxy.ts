@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server';
 // Better auth usually sets these cookies. Adjust if the key is different.
 const AUTH_COOKIE = 'better-auth.session_token'; 
 
-export function middleware(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   // Extract path
   const path = request.nextUrl.pathname;
 
