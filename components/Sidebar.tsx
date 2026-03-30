@@ -12,36 +12,66 @@ import {
   LogOut,
   Settings,
 } from "lucide-react";
-import { signOut } from "@/lib/auth-client";
+import { useQueryClient } from "@tanstack/react-query";
+import { signOut, useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { data: session } = useSession();
+  const userRole = (session?.user as any)?.role;
 
   const navigation = [
-    { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
+    { 
+      name: "Overview", 
+      href: "/dashboard", 
+      icon: LayoutDashboard,
+      roles: ["platform_owner", "platform_admin", "org_owner", "org_admin", "student"]
+    },
     {
       name: "Organizations",
       href: "/dashboard/organizations",
       icon: Building2,
+      roles: ["platform_owner", "platform_admin"] // Only platform admins see all orgs
     },
-    { name: "Exams", href: "/dashboard/exams", icon: FileText },
-    { name: "Reviews", href: "/dashboard/reviews", icon: ShieldAlert },
+    { 
+      name: "Exams", 
+      href: "/dashboard/exams", 
+      icon: FileText,
+      roles: ["platform_owner", "platform_admin", "org_owner", "org_admin", "student"]
+    },
+    { 
+      name: "Reviews", 
+      href: "/dashboard/reviews", 
+      icon: ShieldAlert,
+      roles: ["platform_owner", "platform_admin", "org_owner", "org_admin"]
+    },
     {
       name: "Subscriptions",
       href: "/dashboard/subscriptions",
       icon: CreditCard,
+      roles: ["platform_owner", "platform_admin", "org_owner"]
     },
   ];
+
+  // Filter navigation by role
+  const filteredNavigation = navigation.filter(item => 
+    !item.roles || item.roles.includes(userRole)
+  );
+
+  const queryClient = useQueryClient();
 
   const handleLogout = async () => {
     try {
       await signOut();
+      // Clear all react-query cache to prevent data leakage between sessions
+      queryClient.clear();
       router.push("/login");
     } catch (e) {
       console.error(e);
       // Fallback
+      queryClient.clear();
       router.push("/login");
     }
   };
@@ -72,7 +102,7 @@ export function Sidebar() {
         <ul role="list" className="flex flex-1 flex-col gap-y-7">
           <li>
             <ul role="list" className="-mx-2 space-y-2">
-              {navigation.map((item) => {
+              {filteredNavigation.map((item) => {
                 const isActive = pathname === item.href;
                 return (
                   <li key={item.name}>
