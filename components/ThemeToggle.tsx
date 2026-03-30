@@ -45,15 +45,18 @@ export function ThemeToggle() {
         <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-blue-400" />
         <span className="sr-only">Toggle theme</span>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl dark:bg-slate-900 p-1">
-        <DropdownMenuItem onClick={() => handleSetTheme("light")} className="cursor-pointer rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 focus:bg-slate-50 dark:focus:bg-slate-800 gap-2 font-medium">
-          <Sun className="h-4 w-4" /> Light
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => handleSetTheme("light")} className="cursor-pointer">
+          <Sun className="h-4 w-4" />
+          <span>Light</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleSetTheme("dark")} className="cursor-pointer rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 focus:bg-slate-50 dark:focus:bg-slate-800 gap-2 font-medium mt-1">
-          <Moon className="h-4 w-4" /> Dark
+        <DropdownMenuItem onClick={() => handleSetTheme("dark")} className="cursor-pointer">
+          <Moon className="h-4 w-4" />
+          <span>Dark</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleSetTheme("system")} className="cursor-pointer rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 focus:bg-slate-50 dark:focus:bg-slate-800 gap-2 font-medium mt-1">
-          <span className="h-4 w-4 flex items-center justify-center font-bold">∀</span> System
+        <DropdownMenuItem onClick={() => handleSetTheme("system")} className="cursor-pointer">
+          <span className="flex h-4 w-4 items-center justify-center font-bold">∀</span>
+          <span>System</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 interface OrganizationCardProps {
-  org: any;
+  org: Record<string, unknown>;
   index: number;
 }
 
@@ -94,22 +94,18 @@ export function OrganizationCard({ org, index }: OrganizationCardProps) {
               </button>
             </DropdownMenuTrigger>
             
-            <DropdownMenuContent align="end" className="w-48 rounded-xl bg-white dark:bg-slate-800 shadow-xl ring-1 ring-black ring-opacity-5 p-1 border border-slate-100 dark:border-slate-700">
-              <DropdownMenuItem asChild className="cursor-pointer rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400 focus:bg-blue-50 dark:focus:bg-blue-500/10 focus:text-blue-600 dark:focus:text-blue-400 transition-colors">
-                <Link
-                  href={`/dashboard/organizations/${org._id}`}
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 w-full"
-                >
-                  <ExternalLink className="h-4 w-4" /> View Details
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem asChild className="cursor-pointer">
+                <Link href={`/dashboard/organizations/${org._id}`} className="flex w-full items-center">
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  <span>View Details</span>
                 </Link>
               </DropdownMenuItem>
               
-              <DropdownMenuItem asChild className="cursor-pointer rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400 focus:bg-blue-50 dark:focus:bg-blue-500/10 focus:text-blue-600 dark:focus:text-blue-400 transition-colors">
-                <Link
-                  href={`/dashboard/organizations/edit/${org._id}`}
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 w-full"
-                >
-                  <Edit className="h-4 w-4" /> Edit Profile
+              <DropdownMenuItem asChild className="cursor-pointer">
+                <Link href={`/dashboard/organizations/edit/${org._id}`} className="flex w-full items-center">
+                  <Edit className="mr-2 h-4 w-4" />
+                  <span>Edit Profile</span>
                 </Link>
               </DropdownMenuItem>
 
@@ -119,13 +115,13 @@ export function OrganizationCard({ org, index }: OrganizationCardProps) {
                   toggleStatusMutation.mutate();
                 }}
                 disabled={toggleStatusMutation.isPending}
-                className="cursor-pointer rounded-lg hover:bg-amber-50 dark:hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-400 focus:bg-amber-50 dark:focus:bg-amber-500/10 focus:text-amber-600 dark:focus:text-amber-400 transition-colors w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300"
+                className="cursor-pointer"
               >
-                {toggleStatusMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Power className="h-4 w-4" />}
-                {org.status === 'active' ? 'Deactivate' : 'Activate'}
+                {toggleStatusMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin text-slate-500" /> : <Power className="mr-2 h-4 w-4" />}
+                <span>{org.status === 'active' ? 'Deactivate' : 'Activate'}</span>
               </DropdownMenuItem>
 
-              <DropdownMenuSeparator className="my-1 border-t border-slate-100 dark:border-slate-700" />
+              <DropdownMenuSeparator />
               
               <DropdownMenuItem 
                 onClick={(e) => {
@@ -133,10 +129,10 @@ export function OrganizationCard({ org, index }: OrganizationCardProps) {
                   deleteMutation.mutate();
                 }}
                 disabled={deleteMutation.isPending}
-                className="cursor-pointer rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 focus:bg-red-50 dark:focus:bg-red-500/10 focus:text-red-600 text-red-600 transition-colors w-full flex items-center gap-2 px-3 py-2 text-sm"
+                className="cursor-pointer text-red-600 focus:text-red-700"
               >
-                {deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                Delete Organization
+                {deleteMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+                <span>Delete Organization</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
