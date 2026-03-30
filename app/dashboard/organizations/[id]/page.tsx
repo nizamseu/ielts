@@ -1,31 +1,27 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useParams, useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { 
-  Building2, 
-  Users, 
-  CreditCard, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  ArrowLeft, 
-  Loader2, 
-  UserCircle2,
-  Calendar,
-  Globe,
-  ShieldCheck
-} from 'lucide-react';
-import { useState } from 'react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+
+// Dynamically import the heavy content with no SSR to prevent "require is not defined" issues
+// that can happen in the Next.js server runtime when mixing certain libraries.
+const DetailContent = dynamic(() => import('./DetailContent'), { 
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center min-h-[40vh]">
+      <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+    </div>
+  )
+});
 
 export default function OrganizationDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'members' | 'subscriptions'>('members');
-  const orgId = params.id as string;
+  const orgId = params?.id as string;
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['adminOrganizationDetail', orgId],
@@ -36,33 +32,9 @@ export default function OrganizationDetailPage() {
     enabled: !!orgId
   });
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-      </div>
-    );
-  }
-
-  if (error || !data) {
-    return (
-      <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-600">
-        <p className="font-semibold text-rose-600">Failed to load organization details.</p>
-        <button 
-          onClick={() => router.back()}
-          className="mt-4 flex items-center gap-2 text-sm font-medium hover:underline"
-        >
-          <ArrowLeft className="w-4 h-4" /> Go Back
-        </button>
-      </div>
-    );
-  }
-
-  const { organization, members, subscriptions } = data;
-
   return (
     <div className="space-y-8 pb-10">
-      {/* Navigation Header */}
+      {/* Navigation Header - Kept in main page for immediate visibility */}
       <div className="flex items-center gap-4">
         <button 
           onClick={() => router.back()}
@@ -73,197 +45,28 @@ export default function OrganizationDetailPage() {
         <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Organization Details</h2>
       </div>
 
-      {/* Hero Section */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm"
-      >
-        <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-          <Building2 size={240} className="text-slate-900 dark:text-white" />
+      {isLoading ? (
+        <div className="flex items-center justify-center min-h-[40vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
         </div>
-
-        <div className="p-8 md:p-10 flex flex-col md:flex-row gap-8 relative z-10">
-          <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-3xl bg-linear-to-br from-blue-600 to-cyan-500 text-white shadow-xl shadow-blue-500/20">
-            <Building2 className="h-12 w-12" />
-          </div>
-
-          <div className="flex-1 space-y-4">
-            <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{organization.name}</h1>
-                <span className="px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-bold uppercase tracking-wider">
-                  {organization.type?.replace('_', ' ')}
-                </span>
-              </div>
-              <p className="mt-1 text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                <MapPin className="w-4 h-4" /> {organization.address || 'Address not listed'}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
-                <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800">
-                  <Mail className="w-4 h-4" />
-                </div>
-                {organization.email}
-              </div>
-              <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
-                <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800">
-                  <Phone className="w-4 h-4" />
-                </div>
-                {organization.phone || 'No phone listed'}
-              </div>
-              <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
-                <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800">
-                  <Calendar className="w-4 h-4" />
-                </div>
-                Since {new Date(organization.createdAt).toLocaleDateString()}
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Tabs Section */}
-      <div className="space-y-6">
-        <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800/50 rounded-2xl w-fit">
+      ) : error ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-600">
+          <p className="font-semibold text-rose-600">Failed to load organization details.</p>
+          <p className="text-sm opacity-70 mt-2">{(error as any)?.response?.data?.message || (error as any)?.message}</p>
           <button 
-            onClick={() => setActiveTab('members')}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-              activeTab === 'members' 
-                ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm' 
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-            }`}
+            onClick={() => router.back()}
+            className="mt-4 flex items-center gap-2 text-sm font-medium hover:underline"
           >
-            <Users className="w-4 h-4" /> People ({members?.length || 0})
-          </button>
-          <button 
-            onClick={() => setActiveTab('subscriptions')}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-              activeTab === 'subscriptions' 
-                ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm' 
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-            }`}
-          >
-            <CreditCard className="w-4 h-4" /> Billing & Subscriptions
+            <ArrowLeft className="w-4 h-4" /> Go Back
           </button>
         </div>
-
-        {activeTab === 'members' ? (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            {members?.length === 0 ? (
-              <div className="p-20 text-center bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800 text-slate-500">
-                No users found in this institution.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {members.map((member: any, i: number) => (
-                  <motion.div
-                    key={member._id || i}
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: i * 0.05 }}
-                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 hover:border-blue-500/30 transition-all group"
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="h-12 w-12 rounded-full border-2 border-white dark:border-slate-800 bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
-                        {member.image ? (
-                          <img src={member.image} alt={member.name} className="h-full w-full object-cover" />
-                        ) : (
-                          <UserCircle2 className="w-8 h-8 text-slate-400" />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                         <div className="flex justify-between items-start">
-                            <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">
-                              {member.name}
-                            </h4>
-                            <span className={`px-2 py-0.5 rounded text-[9px] font-bold tracking-tight uppercase border ${
-                                member.role === 'org_owner' ? 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-900/50' :
-                                member.role === 'org_teacher' ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-900/50' :
-                                'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
-                              }`}>
-                                {member.role?.replace('org_', '')}
-                            </span>
-                         </div>
-                         <p className="text-xs text-slate-500 truncate mt-0.5">{member.email}</p>
-                         
-                         {/* IELTS Standard Identity Fields */}
-                         <div className="flex flex-wrap gap-2 mt-3">
-                            {member.passportNo && (
-                              <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 text-[10px] font-medium flex items-center gap-1">
-                                <ShieldCheck size={10} /> {member.passportNo}
-                              </span>
-                            )}
-                            {member.nationality && (
-                              <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300 text-[10px] font-medium flex items-center gap-1">
-                                <Globe size={10} /> {member.nationality}
-                              </span>
-                            )}
-                         </div>
-                         
-                         {(member.firstName || member.surname) && (
-                           <p className="mt-2 text-[10px] text-slate-400 italic">
-                             Official: {member.firstName} {member.surname}
-                           </p>
-                         )}
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </motion.div>
-        ) : (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="overflow-hidden bg-white dark:bg-slate-900 shadow-sm ring-1 ring-slate-200 dark:ring-slate-800 rounded-2xl"
-          >
-             <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
-               <thead className="bg-slate-50 dark:bg-slate-900/50">
-                 <tr>
-                    <th scope="col" className="py-4 pl-6 pr-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Plan</th>
-                    <th scope="col" className="px-3 py-4 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Status</th>
-                    <th scope="col" className="px-3 py-4 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Date Range</th>
-                 </tr>
-               </thead>
-               <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                 {subscriptions?.map((sub: any, i: number) => (
-                   <tr key={sub._id || i} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                     <td className="whitespace-nowrap py-5 pl-6 pr-3">
-                        <div className="font-bold text-slate-900 dark:text-white">{sub.planId?.name || 'Standard Plan'}</div>
-                        <div className="text-xs text-slate-500">ID: {sub._id?.slice(-8)}</div>
-                     </td>
-                     <td className="whitespace-nowrap px-3 py-5">
-                        <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${
-                           sub.status === 'active' || !sub.status
-                            ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-400' 
-                            : 'bg-rose-50 text-rose-700 dark:bg-rose-400/10 dark:text-rose-400'
-                        }`}>
-                           {(sub.status || 'Active').toUpperCase()}
-                        </span>
-                     </td>
-                     <td className="text-sm text-slate-500 px-3 py-5">
-                        <div className="flex flex-col">
-                           <span>From: {new Date(sub.startDate || sub.createdAt).toLocaleDateString()}</span>
-                           <span className="text-xs opacity-70">To: {sub.endDate ? new Date(sub.endDate).toLocaleDateString() : 'Infinite'}</span>
-                        </div>
-                     </td>
-                   </tr>
-                 ))}
-               </tbody>
-             </table>
-             {subscriptions?.length === 0 && (
-                <div className="p-20 text-center text-slate-500 bg-slate-50 dark:bg-slate-800/20">No active subscriptions listed.</div>
-             )}
-          </motion.div>
-        )}
-      </div>
+      ) : data ? (
+        <DetailContent data={data} />
+      ) : (
+        <div className="text-center py-20 text-slate-500">
+          No data available for this organization.
+        </div>
+      )}
     </div>
   );
 }
