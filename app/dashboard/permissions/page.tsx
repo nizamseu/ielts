@@ -206,41 +206,39 @@ export default function PermissionRoleDashboard() {
   if (isLoading) return <LoadingState />;
 
   return (
-    <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/50">
+    <div className="space-y-8">
       {/* ─── Page Header ─── */}
-      <div className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 px-6 py-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">Role Management</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-              Create and manage roles, set granular permissions, and assign roles to users.
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={() => queryClient.invalidateQueries({ queryKey: ['adminRolePermissions'] })}
-              className="w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-            >
-              <RefreshCcw size={15} />
-            </button>
-            <Button 
-              onClick={() => setIsCreating(true)}
-              className="h-9 px-4 rounded-lg bg-slate-900 dark:bg-blue-600 text-white text-sm font-semibold hover:bg-slate-800 dark:hover:bg-blue-700 transition-colors gap-2"
-            >
-              <Plus size={16} />
-              New Role
-            </Button>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Role Management</h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Create and manage roles, set granular permissions, and assign roles to users.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => queryClient.invalidateQueries({ queryKey: ['adminRolePermissions'] })}
+            className="w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+          >
+            <RefreshCcw size={15} />
+          </button>
+          <Button 
+            onClick={() => setIsCreating(true)}
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/20 px-4 py-2.5 text-sm font-semibold text-white transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <Plus size={16} />
+            New Role
+          </Button>
         </div>
       </div>
 
-      <div className="p-6 space-y-6">
+      <div className="space-y-6">
         {/* ─── Stats Row ─── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Total Roles" value={stats.total} icon={Shield} bgColor="#eef2ff" iconColor="#6366f1" />
-          <StatCard label="Platform Roles" value={stats.platform} icon={Lock} bgColor="#fff7ed" iconColor="#f97316" />
-          <StatCard label="Organization Roles" value={stats.organization} icon={Building2} bgColor="#ecfdf5" iconColor="#10b981" />
-          <StatCard label="Total Users" value={stats.users} icon={Users} bgColor="#eff6ff" iconColor="#3b82f6" />
+          <StatCard index={0} label="Total Roles" value={stats.total} icon={Shield} bgColor="#eef2ff" iconColor="#6366f1" />
+          <StatCard index={1} label="Platform Roles" value={stats.platform} icon={Lock} bgColor="#fff7ed" iconColor="#f97316" />
+          <StatCard index={2} label="Organization Roles" value={stats.organization} icon={Building2} bgColor="#ecfdf5" iconColor="#10b981" />
+          <StatCard index={3} label="Total Users" value={stats.users} icon={Users} bgColor="#eff6ff" iconColor="#3b82f6" />
         </div>
 
         {/* ─── Separator ─── */}
@@ -292,11 +290,12 @@ export default function PermissionRoleDashboard() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-              {platformSystemRoles.map((role: any) => (
+              {platformSystemRoles.map((role: any, i: number) => (
                 <RoleCard 
                   key={role._id} 
                   role={role} 
                   isSystem
+                  index={i}
                   isExpanded={expandedCards.includes(role._id)}
                   onToggleExpand={() => toggleCardExpand(role._id)}
                   onEdit={() => setEditingRole(role)}
@@ -335,10 +334,11 @@ export default function PermissionRoleDashboard() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-              {platformCustomRoles.map((role: any) => (
+              {platformCustomRoles.map((role: any, i: number) => (
                 <RoleCard 
                   key={role._id} 
                   role={role}
+                  index={i}
                   isExpanded={expandedCards.includes(role._id)}
                   onToggleExpand={() => toggleCardExpand(role._id)}
                   onEdit={() => setEditingRole(role)} 
@@ -376,11 +376,12 @@ export default function PermissionRoleDashboard() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-              {orgSystemRoles.map((role: any) => (
+              {orgSystemRoles.map((role: any, i: number) => (
                 <RoleCard 
                   key={role._id} 
                   role={role} 
                   isSystem
+                  index={i}
                   isExpanded={expandedCards.includes(role._id)}
                   onToggleExpand={() => toggleCardExpand(role._id)}
                   onEdit={() => setEditingRole(role)}
@@ -420,10 +421,11 @@ export default function PermissionRoleDashboard() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-              {orgCustomRoles.map((role: any) => (
+              {orgCustomRoles.map((role: any, i: number) => (
                 <RoleCard 
                   key={role._id} 
                   role={role}
+                  index={i}
                   isExpanded={expandedCards.includes(role._id)}
                   onToggleExpand={() => toggleCardExpand(role._id)}
                   onEdit={() => setEditingRole(role)} 
@@ -461,11 +463,16 @@ export default function PermissionRoleDashboard() {
 // SUB-COMPONENTS
 // ═══════════════════════════════════════════════════════════
 
-function StatCard({ label, value, icon: Icon, bgColor, iconColor }: {
-  label: string; value: number; icon: any; bgColor: string; iconColor: string;
+function StatCard({ label, value, icon: Icon, bgColor, iconColor, index = 0 }: {
+  label: string; value: number; icon: any; bgColor: string; iconColor: string; index?: number;
 }) {
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex items-center gap-4 hover:shadow-sm transition-shadow">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: index * 0.1 }}
+      className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex items-center gap-4 hover:shadow-sm transition-shadow"
+    >
       <div 
         className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
         style={{ backgroundColor: bgColor }}
@@ -476,7 +483,7 @@ function StatCard({ label, value, icon: Icon, bgColor, iconColor }: {
         <h4 className="text-2xl font-bold text-slate-800 dark:text-white leading-none">{value}</h4>
         <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mt-1">{label}</p>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -512,9 +519,10 @@ function AddRoleButton({ onClick }: { onClick: () => void }) {
 }
 
 // ─── Role Card with inline expandable permission table ───
-function RoleCard({ role, isSystem, isExpanded, onToggleExpand, onEdit, onDelete }: {
+function RoleCard({ role, isSystem, isExpanded, onToggleExpand, onEdit, onDelete, index = 0 }: {
   role: any;
   isSystem?: boolean;
+  index?: number;
   isExpanded: boolean;
   onToggleExpand: () => void;
   onEdit: () => void;
@@ -543,10 +551,15 @@ function RoleCard({ role, isSystem, isExpanded, onToggleExpand, onEdit, onDelete
   );
 
   return (
-    <div className={cn(
-      "bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all relative overflow-hidden",
-      isExpanded && "col-span-1 md:col-span-2"
-    )}>
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.1 }}
+      className={cn(
+        "bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all relative overflow-hidden",
+        isExpanded && "col-span-1 md:col-span-2"
+      )}
+    >
       {/* Colored top border */}
       <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ backgroundColor: role.color || '#4F46E5' }} />
       
@@ -680,7 +693,7 @@ function RoleCard({ role, isSystem, isExpanded, onToggleExpand, onEdit, onDelete
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 }
 
