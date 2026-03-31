@@ -1118,6 +1118,7 @@ const ALL_ROLES = [
 function UserRoleAssignment({ searchTerm }: { searchTerm: string }) {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
+  const [roleModalUser, setRoleModalUser] = useState<any>(null);
   const perPage = 15;
 
   const { data: users, isLoading } = useQuery({
@@ -1128,12 +1129,21 @@ function UserRoleAssignment({ searchTerm }: { searchTerm: string }) {
     }
   });
 
+  const { data: rolePermissions } = useQuery({
+    queryKey: ['adminRolePermissions'],
+    queryFn: async () => {
+      const res = await api.get('/api/admin/role-permissions');
+      return res.data;
+    }
+  });
+
   const roleMutation = useMutation({
     mutationFn: ({ userId, role }: { userId: string; role: string }) =>
       api.patch(`/api/admin/users/${userId}/role`, { role }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
-      toast.success('User role updated');
+      setRoleModalUser(null);
+      toast.success('User role updated successfully');
     },
     onError: (err: any) => {
       toast.error(err?.response?.data?.message || 'Failed to update role');
@@ -1200,7 +1210,7 @@ function UserRoleAssignment({ searchTerm }: { searchTerm: string }) {
               <th className="text-left px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider hidden md:table-cell">Email</th>
               <th className="text-left px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider hidden lg:table-cell">Status</th>
               <th className="text-left px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Current Role</th>
-              <th className="text-left px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Change Role</th>
+              <th className="text-right px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
@@ -1214,7 +1224,6 @@ function UserRoleAssignment({ searchTerm }: { searchTerm: string }) {
                   transition={{ duration: 0.2, delay: index * 0.03 }}
                   className="group hover:bg-slate-50/80 dark:hover:bg-slate-800/30 transition-colors"
                 >
-                  {/* User Info */}
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
@@ -1228,16 +1237,12 @@ function UserRoleAssignment({ searchTerm }: { searchTerm: string }) {
                       </div>
                     </div>
                   </td>
-
-                  {/* Email */}
                   <td className="px-5 py-3.5 hidden md:table-cell">
                     <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                       <Mail size={12} className="flex-shrink-0" />
                       <span className="truncate max-w-[200px]">{user.email}</span>
                     </div>
                   </td>
-
-                  {/* Status */}
                   <td className="px-5 py-3.5 hidden lg:table-cell">
                     <span className={cn(
                       "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider",
@@ -1250,8 +1255,6 @@ function UserRoleAssignment({ searchTerm }: { searchTerm: string }) {
                       {user.status || 'active'}
                     </span>
                   </td>
-
-                  {/* Current Role Badge */}
                   <td className="px-5 py-3.5">
                     <span
                       className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider"
@@ -1263,30 +1266,19 @@ function UserRoleAssignment({ searchTerm }: { searchTerm: string }) {
                       {user.role?.replace(/_/g, ' ')}
                     </span>
                   </td>
-
-                  {/* Role Dropdown */}
-                  <td className="px-5 py-3.5">
+                  <td className="px-5 py-3.5 text-right flex items-center justify-end">
                     {isPlatformOwner ? (
-                      <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                      <span className="text-[10px] text-slate-400 inline-flex items-center gap-1">
                         <Lock size={11} /> Protected
                       </span>
                     ) : (
-                      <select
-                        value={user.role}
-                        onChange={(e) => roleMutation.mutate({ userId: user._id, role: e.target.value })}
-                        disabled={roleMutation.isPending}
-                        className="h-8 px-2.5 pr-7 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer appearance-none"
-                        style={{
-                          backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                          backgroundPosition: 'right 0.35rem center',
-                          backgroundRepeat: 'no-repeat',
-                          backgroundSize: '1.25em 1.25em',
-                        }}
+                      <button
+                        onClick={() => setRoleModalUser(user)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-blue-300 dark:hover:border-blue-600 hover:text-blue-600 dark:hover:text-blue-400 transition-all"
                       >
-                        {ALL_ROLES.map(r => (
-                          <option key={r} value={r}>{r.replace(/_/g, ' ')}</option>
-                        ))}
-                      </select>
+                        <Edit2 size={12} />
+                        Change
+                      </button>
                     )}
                   </td>
                 </motion.tr>
@@ -1323,6 +1315,188 @@ function UserRoleAssignment({ searchTerm }: { searchTerm: string }) {
           ))}
         </div>
       )}
+
+      {/* Role Change Modal */}
+      <AnimatePresence>
+        {roleModalUser && (
+          <RoleChangeModal
+            user={roleModalUser}
+            roles={rolePermissions || []}
+            isSaving={roleMutation.isPending}
+            onClose={() => setRoleModalUser(null)}
+            onAssign={(role) => roleMutation.mutate({ userId: roleModalUser._id, role })}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// ROLE CHANGE MODAL
+// ═══════════════════════════════════════════════════════════
+
+function RoleChangeModal({ user, roles, isSaving, onClose, onAssign }: {
+  user: any;
+  roles: any[];
+  isSaving: boolean;
+  onClose: () => void;
+  onAssign: (role: string) => void;
+}) {
+  const [selectedRole, setSelectedRole] = useState(user.role);
+
+  const platformRoles = roles.filter((r: any) =>
+    r.context === 'platform' && PLATFORM_SYSTEM_ROLE_NAMES.includes(r.role)
+  );
+  const orgRoles = roles.filter((r: any) =>
+    r.context === 'organization' && ORG_SYSTEM_ROLE_NAMES.includes(r.role)
+  );
+  const customRoles = roles.filter((r: any) =>
+    !PLATFORM_SYSTEM_ROLE_NAMES.includes(r.role) && !ORG_SYSTEM_ROLE_NAMES.includes(r.role)
+  );
+
+  const RoleOption = ({ role }: { role: any }) => {
+    const isSelected = selectedRole === role.role;
+    return (
+      <button
+        onClick={() => setSelectedRole(role.role)}
+        className={cn(
+          "w-full flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all text-left",
+          isSelected
+            ? "border-amber-400 dark:border-amber-500 bg-amber-50/50 dark:bg-amber-500/5"
+            : "border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 border-solid border-2 border-transparent"
+        )}
+        style={{
+          boxShadow: isSelected ? '0 0 0 2px rgba(251, 191, 36, 0.2)' : 'none'
+        }}
+      >
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ backgroundColor: `${role.color || '#4F46E5'}15` }}
+        >
+          <Shield size={18} style={{ color: role.color || '#4F46E5' }} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className={cn(
+            "text-[15px] font-semibold capitalize tracking-tight",
+            isSelected ? "text-amber-800 dark:text-amber-400" : "text-slate-800 dark:text-white"
+          )}>
+            {role.role.replace(/_/g, ' ')}
+          </p>
+          <p className="text-xs text-slate-500 line-clamp-1 mt-0.5 tracking-tight">
+            {role.description || 'No description provided'}
+          </p>
+        </div>
+        {isSelected && (
+          <Check size={20} className="text-amber-500 flex-shrink-0 ml-2" />
+        )}
+      </button>
+    );
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center">
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-slate-900/30 dark:bg-slate-950/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 15 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 15 }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+        className="relative w-full max-w-md mx-4 bg-white dark:bg-[#111827] rounded-[24px] border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden flex flex-col max-h-[90vh]"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 pb-4 shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-[10px] bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400">
+              <UserCircle size={20} />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-900 dark:text-white text-base tracking-tight leading-tight">Assign Role</h3>
+              <p className="text-xs text-slate-500 mt-0.5 font-medium tracking-tight">
+                Change role for <span className="text-slate-700 dark:text-slate-300 uppercase">{user.name}</span>
+              </p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 -mr-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 transition-colors">
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* User Info Card */}
+        <div className="mx-6 mt-1 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex items-center justify-between gap-3 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div
+              className="w-10 h-10 rounded-full flex items-center justify-center text-white text-[15px] font-bold flex-shrink-0"
+              style={{ backgroundColor: ROLE_COLORS[user.role] || '#64748b' }}
+            >
+              {user.name?.charAt(0)?.toUpperCase() || '?'}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-slate-900 dark:text-white truncate tracking-tight">{user.name}</p>
+              <p className="text-xs text-slate-500 truncate tracking-tight mt-0.5">{user.email}</p>
+            </div>
+          </div>
+          <div className="px-2.5 py-1.5 rounded-[10px] border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[11px] font-semibold text-slate-700 dark:text-slate-300 flex-shrink-0 tracking-tight">
+            Current: {user.role?.replace(/_/g, ' ')}
+          </div>
+        </div>
+
+        {/* Role Selection */}
+        <div className="px-6 py-5 overflow-y-auto mb-2 custom-scrollbar flex-1 relative">
+          <p className="text-[13px] font-bold text-slate-900 dark:text-white mb-3">Select Role</p>
+
+          <div className="space-y-5">
+            {platformRoles.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Platform System Roles</p>
+                {platformRoles.map((r: any) => <RoleOption key={r._id} role={r} />)}
+              </div>
+            )}
+
+            {orgRoles.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Organization System Roles</p>
+                {orgRoles.map((r: any) => <RoleOption key={r._id} role={r} />)}
+              </div>
+            )}
+
+            {customRoles.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Custom Roles</p>
+                {customRoles.map((r: any) => <RoleOption key={r._id} role={r} />)}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between gap-3 px-6 py-5 border-t border-slate-100 dark:border-slate-800 bg-[#fafafa] dark:bg-slate-900/50 shrink-0">
+          <Button
+            onClick={onClose}
+            variant="outline"
+            className="flex-1 h-11 rounded-xl text-sm font-semibold border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 tracking-tight hover:bg-slate-50 dark:hover:bg-slate-800"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={() => onAssign(selectedRole)}
+            disabled={selectedRole === user.role || isSaving}
+            className="flex-1 h-11 rounded-xl text-sm font-semibold bg-[#9b9b9b] dark:bg-slate-600 text-white dark:text-white hover:bg-[#858585] dark:hover:bg-slate-500 disabled:opacity-50 gap-2 tracking-tight transition-all"
+          >
+            {isSaving ? <Loader2 size={16} className="animate-spin" /> : <UserCircle size={16} />}
+            Assign Role
+          </Button>
+        </div>
+      </motion.div>
     </div>
   );
 }
