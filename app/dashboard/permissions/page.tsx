@@ -31,7 +31,11 @@ import {
   MessageSquare,
   Star,
   BarChart3,
-  Activity
+  Activity,
+  Loader2,
+  Mail,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
@@ -141,6 +145,14 @@ export default function PermissionRoleDashboard() {
     }
   });
 
+  const { data: allUsers } = useQuery({
+    queryKey: ['adminUsers'],
+    queryFn: async () => {
+      const res = await api.get('/api/admin/users');
+      return res.data;
+    }
+  });
+
   const updateMutation = useMutation({
     mutationFn: (updated: any) => api.patch(`/api/admin/role-permissions/${updated._id}`, updated),
     onSuccess: () => {
@@ -173,9 +185,9 @@ export default function PermissionRoleDashboard() {
       total: roles.length,
       platform: roles.filter((r: any) => r.context === 'platform').length,
       organization: roles.filter((r: any) => r.context === 'organization').length,
-      users: 0,
+      users: allUsers?.length || 0,
     };
-  }, [roles]);
+  }, [roles, allUsers]);
 
   const filteredRoles = useMemo(() => {
     return roles?.filter((r: any) => 
@@ -265,11 +277,13 @@ export default function PermissionRoleDashboard() {
             <input 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search roles..."
+              placeholder={activeTab === 'roles' ? "Search roles..." : "Search users..."}
               className="h-9 w-full sm:w-64 pl-9 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-blue-600/10 focus:border-blue-500 outline-none transition-all text-sm text-slate-700 dark:text-slate-300 placeholder:text-slate-400"
             />
           </div>
         </div>
+
+        {activeTab === 'roles' && (<>
 
         {/* ══════════════════════════════════════════════ */}
         {/* PLATFORM SECTION                              */}
@@ -440,6 +454,11 @@ export default function PermissionRoleDashboard() {
             </div>
           )}
         </section>
+        </>)}
+
+        {activeTab === 'assignments' && (
+          <UserRoleAssignment searchTerm={searchTerm} />
+        )}
       </div>
 
       {/* ─── Side Panel Modal ─── */}
@@ -1073,6 +1092,237 @@ function LoadingState() {
         <RefreshCcw className="w-6 h-6 text-blue-600 animate-spin relative" />
       </div>
       <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Loading Roles...</p>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// USER ROLE ASSIGNMENT TAB
+// ═══════════════════════════════════════════════════════════
+
+const ROLE_COLORS: Record<string, string> = {
+  platform_owner: '#ef4444',
+  platform_admin: '#f97316',
+  org_owner: '#f59e0b',
+  org_admin: '#3b82f6',
+  org_teacher: '#8b5cf6',
+  org_staff: '#06b6d4',
+  student: '#10b981',
+};
+
+const ALL_ROLES = [
+  'platform_owner', 'platform_admin',
+  'org_owner', 'org_admin', 'org_teacher', 'org_staff', 'student'
+];
+
+function UserRoleAssignment({ searchTerm }: { searchTerm: string }) {
+  const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
+  const perPage = 15;
+
+  const { data: users, isLoading } = useQuery({
+    queryKey: ['adminUsers'],
+    queryFn: async () => {
+      const res = await api.get('/api/admin/users');
+      return res.data;
+    }
+  });
+
+  const roleMutation = useMutation({
+    mutationFn: ({ userId, role }: { userId: string; role: string }) =>
+      api.patch(`/api/admin/users/${userId}/role`, { role }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
+      toast.success('User role updated');
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || 'Failed to update role');
+    }
+  });
+
+  const filtered = useMemo(() => {
+    if (!users) return [];
+    return users.filter((u: any) =>
+      u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.role?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [users, searchTerm]);
+
+  const totalPages = Math.ceil(filtered.length / perPage);
+  const paginated = filtered.slice((page - 1) * perPage, page * perPage);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-7 h-7 animate-spin text-blue-500" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Summary bar */}
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-slate-400">
+          Showing <span className="font-semibold text-slate-600 dark:text-slate-300">{paginated.length}</span> of{' '}
+          <span className="font-semibold text-slate-600 dark:text-slate-300">{filtered.length}</span> users
+        </p>
+        {filtered.length > perPage && (
+          <div className="flex items-center gap-1.5">
+            <button
+              disabled={page === 1}
+              onClick={() => setPage(p => p - 1)}
+              className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft size={15} />
+            </button>
+            <span className="text-xs font-semibold text-slate-500 px-2">
+              {page} / {totalPages}
+            </span>
+            <button
+              disabled={page === totalPages}
+              onClick={() => setPage(p => p + 1)}
+              className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronRight size={15} />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Table */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/30">
+              <th className="text-left px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">User</th>
+              <th className="text-left px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider hidden md:table-cell">Email</th>
+              <th className="text-left px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider hidden lg:table-cell">Status</th>
+              <th className="text-left px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Current Role</th>
+              <th className="text-left px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Change Role</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
+            {paginated.map((user: any, index: number) => {
+              const isPlatformOwner = user.role === 'platform_owner';
+              return (
+                <motion.tr
+                  key={user._id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, delay: index * 0.03 }}
+                  className="group hover:bg-slate-50/80 dark:hover:bg-slate-800/30 transition-colors"
+                >
+                  {/* User Info */}
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                        style={{ backgroundColor: ROLE_COLORS[user.role] || '#64748b' }}
+                      >
+                        {user.name?.charAt(0)?.toUpperCase() || '?'}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-slate-800 dark:text-white truncate">{user.name}</p>
+                        <p className="text-[10px] text-slate-400 md:hidden truncate">{user.email}</p>
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* Email */}
+                  <td className="px-5 py-3.5 hidden md:table-cell">
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                      <Mail size={12} className="flex-shrink-0" />
+                      <span className="truncate max-w-[200px]">{user.email}</span>
+                    </div>
+                  </td>
+
+                  {/* Status */}
+                  <td className="px-5 py-3.5 hidden lg:table-cell">
+                    <span className={cn(
+                      "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider",
+                      user.status === 'active'
+                        ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
+                        : user.status === 'blocked'
+                        ? "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400"
+                        : "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
+                    )}>
+                      {user.status || 'active'}
+                    </span>
+                  </td>
+
+                  {/* Current Role Badge */}
+                  <td className="px-5 py-3.5">
+                    <span
+                      className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider"
+                      style={{
+                        color: ROLE_COLORS[user.role] || '#64748b',
+                        backgroundColor: `${ROLE_COLORS[user.role] || '#64748b'}12`,
+                      }}
+                    >
+                      {user.role?.replace(/_/g, ' ')}
+                    </span>
+                  </td>
+
+                  {/* Role Dropdown */}
+                  <td className="px-5 py-3.5">
+                    {isPlatformOwner ? (
+                      <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                        <Lock size={11} /> Protected
+                      </span>
+                    ) : (
+                      <select
+                        value={user.role}
+                        onChange={(e) => roleMutation.mutate({ userId: user._id, role: e.target.value })}
+                        disabled={roleMutation.isPending}
+                        className="h-8 px-2.5 pr-7 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer appearance-none"
+                        style={{
+                          backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                          backgroundPosition: 'right 0.35rem center',
+                          backgroundRepeat: 'no-repeat',
+                          backgroundSize: '1.25em 1.25em',
+                        }}
+                      >
+                        {ALL_ROLES.map(r => (
+                          <option key={r} value={r}>{r.replace(/_/g, ' ')}</option>
+                        ))}
+                      </select>
+                    )}
+                  </td>
+                </motion.tr>
+              );
+            })}
+          </tbody>
+        </table>
+
+        {paginated.length === 0 && (
+          <div className="py-16 text-center">
+            <Users className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">No users found</p>
+            <p className="text-xs text-slate-400 mt-1">Try adjusting your search term</p>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom pagination */}
+      {filtered.length > perPage && (
+        <div className="flex items-center justify-center gap-1">
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+            <button
+              key={p}
+              onClick={() => setPage(p)}
+              className={cn(
+                "w-8 h-8 rounded-lg text-xs font-semibold transition-all",
+                p === page
+                  ? "bg-slate-900 dark:bg-blue-600 text-white shadow-sm"
+                  : "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+              )}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
