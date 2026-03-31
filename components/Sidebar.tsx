@@ -34,6 +34,13 @@ const navigation = [
     roles: ["platform_owner", "platform_admin"],
     section: "platform"
   },
+  {
+    name: "Permissions",
+    href: "/dashboard/permissions",
+    icon: ShieldAlert,
+    roles: ["platform_owner", "platform_admin"],
+    section: "platform"
+  },
   // ── Organization Users ─────────────────────
   {
     name: "My Organization",
