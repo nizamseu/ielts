@@ -108,9 +108,18 @@ export function Sidebar() {
     }
   };
 
+  // Find the most specific matching navigation item for the current path
+  const activeNavItem = filteredNavigation
+    .filter(nav => pathname === nav.href || pathname.startsWith(`${nav.href}/`))
+    .sort((a, b) => b.href.length - a.href.length)[0];
+
   const renderNavItem = (item: typeof navigation[0]) => {
-    const isActive = pathname === item.href || 
-      (item.href !== "/admin" && pathname.startsWith(item.href));
+    // Check if this item is the exact active item (deepest match)
+    // Or fallback to checking exactly if no deep match was found
+    const isActive = activeNavItem 
+      ? activeNavItem.name === item.name 
+      : pathname === item.href;
+
     return (
       <li key={item.name}>
         <Link
