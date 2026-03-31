@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CreditCard, Loader2, Package, CheckCircle2, Zap, Calendar, TrendingUp } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { CreditCard, Loader2, Package, CheckCircle2, Zap, Calendar, TrendingUp, Trash2 } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { authClient } from '@/lib/auth-client';
 import PlansManagement from './PlansManagement';
@@ -47,6 +47,26 @@ export default function SubscriptionsPage() {
 
   const isLoading = adminLoading || myLoading || plansLoading;
   const mySubscription = mySubData?.data;
+
+  const queryClient = useQueryClient();
+  const deleteSubMutation = useMutation({
+    mutationFn: async (subId: string) => {
+      if (!confirm('Are you sure you want to permanently delete this subscription record?')) {
+        throw new Error('Cancelled');
+      }
+      return api.delete(`/api/subscriptions/${subId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminSubscriptions'] });
+      queryClient.invalidateQueries({ queryKey: ['mySubscription'] });
+      queryClient.invalidateQueries({ queryKey: ['adminOrganizationDetail'] });
+    },
+    onError: (err: any) => {
+      if (err.message !== 'Cancelled') {
+        alert(err.response?.data?.message || 'Failed to delete subscription');
+      }
+    }
+  });
 
   return (
     <div className="space-y-8 pb-10">
@@ -99,6 +119,7 @@ export default function SubscriptionsPage() {
                 <th className="px-3 py-4 text-left text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Status</th>
                 <th className="px-3 py-4 text-left text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Started</th>
                 <th className="px-3 py-4 text-left text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Expires</th>
+                <th className="px-3 py-4 text-right text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
@@ -122,6 +143,19 @@ export default function SubscriptionsPage() {
                   </td>
                   <td className="whitespace-nowrap px-3 py-5 text-sm text-slate-500">
                     {sub.endDate ? new Date(sub.endDate).toLocaleDateString() : 'Infinite'}
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-5 text-right">
+                    <button 
+                      onClick={() => deleteSubMutation.mutate(sub._id)}
+                      disabled={deleteSubMutation.isPending}
+                      className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      {deleteSubMutation.isPending && deleteSubMutation.variables === sub._id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4" />
+                      )}
+                    </button>
                   </td>
                 </tr>
               ))}

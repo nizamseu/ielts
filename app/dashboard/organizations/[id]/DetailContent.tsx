@@ -18,7 +18,8 @@ import {
   CheckCircle2,
   ChevronRight,
   TrendingUp,
-  Loader2
+  Loader2,
+  Trash2
 } from 'lucide-react';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -65,6 +66,24 @@ export default function DetailContent({ data }: DetailContentProps) {
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || 'Failed to assign plan');
+    }
+  });
+
+  const deleteSubMutation = useMutation({
+    mutationFn: async (subId: string) => {
+      if (!confirm('Are you sure you want to permanently delete this subscription record?')) {
+        throw new Error('Cancelled');
+      }
+      return api.delete(`/api/subscriptions/${subId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminOrganizationDetail', data?.organization?._id] });
+      toast.success('Subscription record deleted');
+    },
+    onError: (err: any) => {
+      if (err.message !== 'Cancelled') {
+        toast.error(err.response?.data?.message || 'Failed to delete subscription');
+      }
     }
   });
 
@@ -243,6 +262,7 @@ export default function DetailContent({ data }: DetailContentProps) {
                     <th scope="col" className="py-4 pl-6 pr-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Plan</th>
                     <th scope="col" className="px-3 py-4 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Status</th>
                     <th scope="col" className="px-3 py-4 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Date Range</th>
+                    {isAdmin && <th scope="col" className="px-3 py-4 text-right text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Actions</th>}
                  </tr>
                </thead>
                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
@@ -267,6 +287,22 @@ export default function DetailContent({ data }: DetailContentProps) {
                            <span className="text-xs opacity-70 ml-4.5">to {sub.endDate ? new Date(sub.endDate).toLocaleDateString() : 'Infinite'}</span>
                         </div>
                      </td>
+                     {isAdmin && (
+                        <td className="whitespace-nowrap px-3 py-5 text-right">
+                           <button 
+                              onClick={() => deleteSubMutation.mutate(sub._id)}
+                              disabled={deleteSubMutation.isPending}
+                              className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors disabled:opacity-50"
+                              title="Delete Subscription"
+                           >
+                              {deleteSubMutation.isPending && deleteSubMutation.variables === sub._id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
+                           </button>
+                        </td>
+                     )}
                    </tr>
                  ))}
                </tbody>
