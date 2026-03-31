@@ -8,8 +8,7 @@ export default function proxy(request: NextRequest) {
   // Extract path
   const path = request.nextUrl.pathname;
 
-  // Paths that require auth
-  const isDashboardPath = path.startsWith('/admin');
+  const isProtectedPath = path.startsWith('/admin') || path.startsWith('/learn');
   
   // Public paths
   const isPublicPath = path === '/login' || path === '/register';
@@ -17,8 +16,8 @@ export default function proxy(request: NextRequest) {
   // Check auth token
   const hasToken = request.cookies.has(AUTH_COOKIE);
 
-  // If trying to access dashboard without token, redirect to login
-  if (isDashboardPath && !hasToken) {
+  // If trying to access protected path without token, redirect to login
+  if (isProtectedPath && !hasToken) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 

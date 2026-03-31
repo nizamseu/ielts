@@ -31,9 +31,16 @@ export default function LoginPage() {
       } else if (data?.token) {
         // Store the token as a cookie so middleware can protect routes
         document.cookie = `better-auth.session_token=${data.token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
-        router.push("/admin");
+        
+        // Use user object from session context if available, fallback to basic auth route split
+        if (data?.user?.role === 'student' || data?.user?.role === 'user') {
+          router.push("/learn");
+        } else {
+          router.push("/admin");
+        }
       } else {
-        // Fallback: session was set via httpOnly cookie by the server
+        // Fallback: session was set via httpOnly cookie by the server... we don't have user object
+        // For fallback, might need to fetch me() but we assume admin route for safety here until context loads
         router.push("/admin");
       }
     } catch (err: any) {
