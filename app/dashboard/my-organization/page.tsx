@@ -275,7 +275,23 @@ export default function MyOrganizationPage() {
                         </span>
                       </div>
                     )}
-                    {subscription.limits.maxExamsPerMonth && (
+                    {subscription.limits.maxTeachers && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-600 dark:text-slate-400">Max Teachers</span>
+                        <span className="font-semibold text-slate-900 dark:text-white">
+                          {stats?.totalTeachers || 0} / {subscription.limits.maxTeachers}
+                        </span>
+                      </div>
+                    )}
+                    {subscription.limits.maxAdmins && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-600 dark:text-slate-400">Max Admins</span>
+                        <span className="font-semibold text-slate-900 dark:text-white">
+                          {stats?.totalAdmins || 0} / {subscription.limits.maxAdmins}
+                        </span>
+                      </div>
+                    )}
+                    {subscription.limits.maxExamsPerMonth > 0 && (
                       <div className="flex justify-between text-sm">
                         <span className="text-slate-600 dark:text-slate-400">Exams / Month</span>
                         <span className="font-semibold text-slate-900 dark:text-white">
@@ -283,9 +299,9 @@ export default function MyOrganizationPage() {
                         </span>
                       </div>
                     )}
-                    {subscription.limits.maxAIRequests && (
+                    {subscription.limits.maxAIRequests > 0 && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-slate-600 dark:text-slate-400">AI Requests</span>
+                        <span className="text-slate-600 dark:text-slate-400">AI Writing</span>
                         <span className="font-semibold text-slate-900 dark:text-white">
                           {subscription.limits.maxAIRequests}
                         </span>

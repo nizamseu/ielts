@@ -66,7 +66,7 @@ const navigation = [
     name: "Subscriptions",
     href: "/dashboard/subscriptions",
     icon: CreditCard,
-    roles: ["platform_owner", "platform_admin", "org_owner"]
+    roles: ["platform_owner", "platform_admin", "org_owner", "student"]
   },
 ];
 
@@ -79,7 +79,7 @@ export function Sidebar() {
   // Filter navigation by role
   const filteredNavigation = navigation.filter(item => {
     if (isPending) return item.roles.includes("student");
-    return !item.roles || item.roles.includes(userRole);
+    return !item.roles || (userRole && item.roles.includes(userRole));
   });
 
   // Group items by section for visual separation
