@@ -199,9 +199,9 @@ export default function PlansManagement() {
                       )}
                     </div>
                     <p className="text-sm font-semibold text-slate-500 mt-2">
-                      <span className="text-2xl text-slate-900 dark:text-white">${plan.priceMonthly || 0}</span>/mo 
+                      <span className="text-2xl text-slate-900 dark:text-white">৳{plan.priceMonthly || 0}</span>/mo 
                       <span className="mx-2 text-slate-300">|</span> 
-                      <span className="text-lg">${plan.priceYearly || 0}</span>/yr
+                      <span className="text-lg">৳{plan.priceYearly || 0}</span>/yr
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -295,11 +295,11 @@ function PlanForm({ initialData, onSubmit, onCancel, isPending }: { initialData?
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Monthly Price ($)</label>
+          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Monthly Price (৳)</label>
           <Input name="priceMonthly" type="number" step="0.01" min="0" defaultValue={initialData?.priceMonthly} required className="h-10 text-sm rounded-xl" />
         </div>
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Yearly Price ($)</label>
+          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Yearly Price (৳)</label>
           <Input name="priceYearly" type="number" step="0.01" min="0" defaultValue={initialData?.priceYearly} required className="h-10 text-sm rounded-xl" />
         </div>
       </div>
