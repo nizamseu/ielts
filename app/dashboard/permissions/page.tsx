@@ -120,6 +120,10 @@ const BADGE_COLORS = [
   '#1e293b', // Dark Slate
 ];
 
+// Known built-in system roles (cannot be deleted)
+const PLATFORM_SYSTEM_ROLE_NAMES = ['platform_owner', 'platform_admin', 'super_admin'];
+const ORG_SYSTEM_ROLE_NAMES = ['org_owner', 'org_admin', 'org_teacher', 'org_staff', 'student'];
+
 // --- MAIN COMPONENT ---
 export default function PermissionRoleDashboard() {
   const queryClient = useQueryClient();
@@ -164,11 +168,11 @@ export default function PermissionRoleDashboard() {
   });
 
   const stats = useMemo(() => {
-    if (!roles) return { total: 0, system: 0, custom: 0, users: 0 };
+    if (!roles) return { total: 0, platform: 0, organization: 0, users: 0 };
     return {
       total: roles.length,
-      system: roles.filter((r: any) => r.context === 'platform').length,
-      custom: roles.filter((r: any) => r.context === 'organization').length,
+      platform: roles.filter((r: any) => r.context === 'platform').length,
+      organization: roles.filter((r: any) => r.context === 'organization').length,
       users: 0,
     };
   }, [roles]);
@@ -179,8 +183,19 @@ export default function PermissionRoleDashboard() {
     ) || [];
   }, [roles, searchTerm]);
 
-  const systemRoles = filteredRoles.filter((r: any) => r.context === 'platform');
-  const customRoles = filteredRoles.filter((r: any) => r.context === 'organization');
+  // 4-way categorization
+  const platformSystemRoles = filteredRoles.filter((r: any) => 
+    r.context === 'platform' && PLATFORM_SYSTEM_ROLE_NAMES.includes(r.role)
+  );
+  const platformCustomRoles = filteredRoles.filter((r: any) => 
+    r.context === 'platform' && !PLATFORM_SYSTEM_ROLE_NAMES.includes(r.role)
+  );
+  const orgSystemRoles = filteredRoles.filter((r: any) => 
+    r.context === 'organization' && ORG_SYSTEM_ROLE_NAMES.includes(r.role)
+  );
+  const orgCustomRoles = filteredRoles.filter((r: any) => 
+    r.context === 'organization' && !ORG_SYSTEM_ROLE_NAMES.includes(r.role)
+  );
 
   const toggleCardExpand = (id: string) => {
     setExpandedCards(prev => 
@@ -223,8 +238,8 @@ export default function PermissionRoleDashboard() {
         {/* ─── Stats Row ─── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard label="Total Roles" value={stats.total} icon={Shield} bgColor="#eef2ff" iconColor="#6366f1" />
-          <StatCard label="System Roles" value={stats.system} icon={Lock} bgColor="#fff7ed" iconColor="#f97316" />
-          <StatCard label="Custom Roles" value={stats.custom} icon={ShieldCheck} bgColor="#ecfdf5" iconColor="#10b981" />
+          <StatCard label="Platform Roles" value={stats.platform} icon={Lock} bgColor="#fff7ed" iconColor="#f97316" />
+          <StatCard label="Organization Roles" value={stats.organization} icon={Building2} bgColor="#ecfdf5" iconColor="#10b981" />
           <StatCard label="Total Users" value={stats.users} icon={Users} bgColor="#eff6ff" iconColor="#3b82f6" />
         </div>
 
@@ -258,60 +273,69 @@ export default function PermissionRoleDashboard() {
           </div>
         </div>
 
-        {/* ─── System Roles Section ─── */}
+        {/* ══════════════════════════════════════════════ */}
+        {/* PLATFORM SECTION                              */}
+        {/* ══════════════════════════════════════════════ */}
+
+        {/* ─── Platform System Roles ─── */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-semibold text-xs uppercase tracking-wider px-0.5">
             <Lock size={13} />
-            SYSTEM ROLES
+            PLATFORM SYSTEM ROLES
             <span className="bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-md text-[10px] font-bold ml-1">
-              {systemRoles.length}
+              {platformSystemRoles.length}
             </span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {systemRoles.map((role: any) => (
-              <RoleCard 
-                key={role._id} 
-                role={role} 
-                isSystem
-                isExpanded={expandedCards.includes(role._id)}
-                onToggleExpand={() => toggleCardExpand(role._id)}
-                onEdit={() => setEditingRole(role)}
-              />
-            ))}
-          </div>
+          {platformSystemRoles.length === 0 ? (
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-8 text-center">
+              <p className="text-sm text-slate-400">No platform system roles configured yet. Create roles like <code className="text-xs bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">platform_owner</code> or <code className="text-xs bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">platform_admin</code> to see them here.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+              {platformSystemRoles.map((role: any) => (
+                <RoleCard 
+                  key={role._id} 
+                  role={role} 
+                  isSystem
+                  isExpanded={expandedCards.includes(role._id)}
+                  onToggleExpand={() => toggleCardExpand(role._id)}
+                  onEdit={() => setEditingRole(role)}
+                />
+              ))}
+            </div>
+          )}
         </section>
 
-        {/* ─── Custom Roles Section ─── */}
+        {/* ─── Platform Custom Roles ─── */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-semibold text-xs uppercase tracking-wider px-0.5">
             <ShieldCheck size={13} />
-            CUSTOM ROLES
+            PLATFORM CUSTOM ROLES
             <span className="bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-md text-[10px] font-bold ml-1">
-              {customRoles.length}
+              {platformCustomRoles.length}
             </span>
           </div>
-          
-          {customRoles.length === 0 ? (
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-12 flex flex-col items-center justify-center text-center space-y-4">
-              <div className="w-14 h-14 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-300 dark:text-slate-600">
-                <Shield size={28} />
+          {platformCustomRoles.length === 0 ? (
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-8 flex flex-col items-center justify-center text-center space-y-3">
+              <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-300 dark:text-slate-600">
+                <Shield size={24} />
               </div>
-              <div className="space-y-1.5">
-                <h3 className="font-semibold text-slate-700 dark:text-slate-300">No custom roles yet</h3>
-                <p className="text-sm text-slate-400 max-w-[320px]">
-                  Create custom roles with specific permissions tailored for your organization&apos;s needs.
+              <div className="space-y-1">
+                <h3 className="font-semibold text-slate-700 dark:text-slate-300 text-sm">No platform custom roles</h3>
+                <p className="text-xs text-slate-400 max-w-[300px]">
+                  Create custom platform-level roles for advanced access control.
                 </p>
               </div>
               <Button 
                 onClick={() => setIsCreating(true)} 
-                className="bg-slate-900 dark:bg-blue-600 h-10 px-6 rounded-lg text-sm font-semibold"
+                className="bg-slate-900 dark:bg-blue-600 h-9 px-5 rounded-lg text-xs font-semibold"
               >
-                <Plus size={16} className="mr-2" /> Create First Role
+                <Plus size={14} className="mr-1.5" /> Create Role
               </Button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-              {customRoles.map((role: any) => (
+              {platformCustomRoles.map((role: any) => (
                 <RoleCard 
                   key={role._id} 
                   role={role}
@@ -325,15 +349,92 @@ export default function PermissionRoleDashboard() {
                   }}
                 />
               ))}
-              <button 
-                onClick={() => setIsCreating(true)}
-                className="group border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-6 flex flex-col items-center justify-center gap-3 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-white dark:hover:bg-slate-900/50 transition-all cursor-pointer min-h-[200px]"
+              <AddRoleButton onClick={() => setIsCreating(true)} />
+            </div>
+          )}
+        </section>
+
+        {/* ─── Divider between Platform and Organization ─── */}
+        <div className="border-t border-slate-200/60 dark:border-slate-800" />
+
+        {/* ══════════════════════════════════════════════ */}
+        {/* ORGANIZATION SECTION                          */}
+        {/* ══════════════════════════════════════════════ */}
+
+        {/* ─── Organization Roles (built-in) ─── */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-semibold text-xs uppercase tracking-wider px-0.5">
+            <Building2 size={13} />
+            ORGANIZATION ROLES
+            <span className="bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-md text-[10px] font-bold ml-1">
+              {orgSystemRoles.length}
+            </span>
+          </div>
+          {orgSystemRoles.length === 0 ? (
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-8 text-center">
+              <p className="text-sm text-slate-400">No organization roles configured yet. Create roles like <code className="text-xs bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">org_owner</code>, <code className="text-xs bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">org_admin</code>, or <code className="text-xs bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">org_teacher</code> to see them here.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+              {orgSystemRoles.map((role: any) => (
+                <RoleCard 
+                  key={role._id} 
+                  role={role} 
+                  isSystem
+                  isExpanded={expandedCards.includes(role._id)}
+                  onToggleExpand={() => toggleCardExpand(role._id)}
+                  onEdit={() => setEditingRole(role)}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* ─── Organization Custom Roles ─── */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-semibold text-xs uppercase tracking-wider px-0.5">
+            <ShieldCheck size={13} />
+            ORGANIZATION CUSTOM ROLES
+            <span className="bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-md text-[10px] font-bold ml-1">
+              {orgCustomRoles.length}
+            </span>
+          </div>
+          
+          {orgCustomRoles.length === 0 ? (
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-8 flex flex-col items-center justify-center text-center space-y-3">
+              <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-300 dark:text-slate-600">
+                <Shield size={24} />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-semibold text-slate-700 dark:text-slate-300 text-sm">No organization custom roles</h3>
+                <p className="text-xs text-slate-400 max-w-[300px]">
+                  Create custom roles tailored for your organization&apos;s specific needs.
+                </p>
+              </div>
+              <Button 
+                onClick={() => setIsCreating(true)} 
+                className="bg-slate-900 dark:bg-blue-600 h-9 px-5 rounded-lg text-xs font-semibold"
               >
-                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:scale-110 group-hover:bg-blue-50 group-hover:text-blue-500 dark:group-hover:bg-blue-900/30 transition-all">
-                  <Plus size={20} />
-                </div>
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Add New Role</span>
-              </button>
+                <Plus size={14} className="mr-1.5" /> Create First Role
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+              {orgCustomRoles.map((role: any) => (
+                <RoleCard 
+                  key={role._id} 
+                  role={role}
+                  isExpanded={expandedCards.includes(role._id)}
+                  onToggleExpand={() => toggleCardExpand(role._id)}
+                  onEdit={() => setEditingRole(role)} 
+                  onDelete={() => {
+                    if (confirm('Are you sure you want to delete this role?')) {
+                      deleteMutation.mutate(role._id);
+                    }
+                  }}
+                />
+              ))}
+              <AddRoleButton onClick={() => setIsCreating(true)} />
             </div>
           )}
         </section>
@@ -392,6 +493,20 @@ function TabButton({ active, onClick, icon: Icon, label }: any) {
     >
       <Icon size={14} className={active ? "text-blue-600 dark:text-blue-400" : "text-slate-400"} />
       {label}
+    </button>
+  );
+}
+
+function AddRoleButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button 
+      onClick={onClick}
+      className="group border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-6 flex flex-col items-center justify-center gap-3 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-white dark:hover:bg-slate-900/50 transition-all cursor-pointer min-h-[200px]"
+    >
+      <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:scale-110 group-hover:bg-blue-50 group-hover:text-blue-500 dark:group-hover:bg-blue-900/30 transition-all">
+        <Plus size={20} />
+      </div>
+      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Add New Role</span>
     </button>
   );
 }
@@ -455,7 +570,7 @@ function RoleCard({ role, isSystem, isExpanded, onToggleExpand, onEdit, onDelete
                   {role.role.replace(/_/g, ' ')}
                 </h3>
                 <span className="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wide">
-                  {role.context === 'platform' ? 'System' : 'Custom'}
+                  {isSystem ? (role.context === 'platform' ? 'Platform' : 'Organization') : 'Custom'}
                 </span>
               </div>
               <p className="text-[10px] text-slate-400 font-mono mt-0.5">{role.role}</p>
