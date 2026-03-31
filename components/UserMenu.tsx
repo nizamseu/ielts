@@ -65,7 +65,7 @@ export function UserMenu() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
         <DropdownMenuItem asChild className="cursor-pointer rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 focus:bg-slate-50 gap-2 font-medium">
-          <Link href="/dashboard/profile">
+          <Link href="/admin/profile">
             <UserIcon className="h-4 w-4 text-slate-500" />
             Profile Settings
           </Link>

@@ -96,14 +96,14 @@ export function OrganizationCard({ org, index }: OrganizationCardProps) {
             
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem asChild className="cursor-pointer">
-                <Link href={`/dashboard/organizations/${org._id}`} className="flex w-full items-center">
+                <Link href={`/admin/organizations/${org._id}`} className="flex w-full items-center">
                   <ExternalLink className="mr-2 h-4 w-4" />
                   <span>View Details</span>
                 </Link>
               </DropdownMenuItem>
               
               <DropdownMenuItem asChild className="cursor-pointer">
-                <Link href={`/dashboard/organizations/edit/${org._id}`} className="flex w-full items-center">
+                <Link href={`/admin/organizations/edit/${org._id}`} className="flex w-full items-center">
                   <Edit className="mr-2 h-4 w-4" />
                   <span>Edit Profile</span>
                 </Link>
@@ -160,7 +160,7 @@ export function OrganizationCard({ org, index }: OrganizationCardProps) {
           <span className="text-lg font-semibold text-slate-900 dark:text-white">{org.membersCount || '0'}</span>
         </div>
         <Link 
-          href={`/dashboard/organizations/${org._id}`}
+          href={`/admin/organizations/${org._id}`}
           className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
         >
           View Full Report &rarr;

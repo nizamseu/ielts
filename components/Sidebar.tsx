@@ -22,21 +22,21 @@ import { Button } from "@/components/ui/button";
 const navigation = [
   { 
     name: "Overview", 
-    href: "/dashboard", 
+    href: "/admin", 
     icon: LayoutDashboard,
     roles: ["platform_owner", "platform_admin", "org_owner", "org_admin", "org_teacher", "org_staff", "student"]
   },
   // ── Platform Admin Only ────────────────────
   {
     name: "Organizations",
-    href: "/dashboard/organizations",
+    href: "/admin/organizations",
     icon: Building2,
     roles: ["platform_owner", "platform_admin"],
     section: "platform"
   },
   {
     name: "Permissions",
-    href: "/dashboard/permissions",
+    href: "/admin/permissions",
     icon: ShieldAlert,
     roles: ["platform_owner", "platform_admin"],
     section: "platform"
@@ -44,14 +44,14 @@ const navigation = [
   // ── Organization Users ─────────────────────
   {
     name: "My Organization",
-    href: "/dashboard/my-organization",
+    href: "/admin/my-organization",
     icon: Building2,
     roles: ["org_owner", "org_admin", "org_teacher", "org_staff"],
     section: "organization"
   },
   {
     name: "Members",
-    href: "/dashboard/my-organization/members",
+    href: "/admin/my-organization/members",
     icon: Users,
     roles: ["org_owner", "org_admin", "org_teacher"],
     section: "organization"
@@ -59,19 +59,19 @@ const navigation = [
   // ── Common Items ───────────────────────────
   { 
     name: "Exams", 
-    href: "/dashboard/exams", 
+    href: "/admin/exams", 
     icon: FileText,
     roles: ["platform_owner", "platform_admin", "org_owner", "org_admin", "org_teacher", "student"]
   },
   { 
     name: "Reviews", 
-    href: "/dashboard/reviews", 
+    href: "/admin/reviews", 
     icon: ShieldAlert,
     roles: ["platform_owner", "platform_admin", "org_owner", "org_admin"]
   },
   {
     name: "Subscriptions",
-    href: "/dashboard/subscriptions",
+    href: "/admin/subscriptions",
     icon: CreditCard,
     roles: ["platform_owner", "platform_admin", "org_owner", "student"]
   },
@@ -110,7 +110,7 @@ export function Sidebar() {
 
   const renderNavItem = (item: typeof navigation[0]) => {
     const isActive = pathname === item.href || 
-      (item.href !== "/dashboard" && pathname.startsWith(item.href));
+      (item.href !== "/admin" && pathname.startsWith(item.href));
     return (
       <li key={item.name}>
         <Link

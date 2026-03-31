@@ -31,10 +31,10 @@ export default function LoginPage() {
       } else if (data?.token) {
         // Store the token as a cookie so middleware can protect routes
         document.cookie = `better-auth.session_token=${data.token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
-        router.push("/dashboard");
+        router.push("/admin");
       } else {
         // Fallback: session was set via httpOnly cookie by the server
-        router.push("/dashboard");
+        router.push("/admin");
       }
     } catch (err: any) {
       setError("An unexpected error occurred. Please try again.");

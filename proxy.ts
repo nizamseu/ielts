@@ -9,7 +9,7 @@ export default function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   // Paths that require auth
-  const isDashboardPath = path.startsWith('/dashboard');
+  const isDashboardPath = path.startsWith('/admin');
   
   // Public paths
   const isPublicPath = path === '/login' || path === '/register';
@@ -24,13 +24,13 @@ export default function proxy(request: NextRequest) {
 
   // If trying to access login while already authenticated, redirect to dashboard
   if (isPublicPath && hasToken) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL('/admin', request.url));
   }
 
   // If accessing root, and has token -> dashboard, otherwise login
   if (path === '/') {
     if (hasToken) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      return NextResponse.redirect(new URL('/admin', request.url));
     } else {
       return NextResponse.redirect(new URL('/login', request.url));
     }

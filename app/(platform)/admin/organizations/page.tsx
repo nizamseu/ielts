@@ -23,7 +23,7 @@ export default function OrganizationsPage() {
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Manage all registered academies and coaching centers.</p>
         </div>
         <Link 
-          href="/dashboard/organizations/add"
+          href="/admin/organizations/add"
           className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/20 px-4 py-2.5 text-sm font-semibold text-white transition-all transform hover:scale-[1.02] active:scale-[0.98]"
         >
           <Plus className="h-5 w-5" />

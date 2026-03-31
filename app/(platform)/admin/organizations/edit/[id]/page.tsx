@@ -1,13 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import dayjs from 'dayjs';
+import { useRouter, useParams } from 'next/navigation';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { 
   Building2, 
@@ -19,9 +18,9 @@ import {
   AlertCircle,
   Globe,
   LayoutGrid,
-  CheckCircle2
+  CheckCircle2,
+  Save
 } from 'lucide-react';
-import Link from 'next/link';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -41,14 +40,28 @@ const formSchema = z.object({
   email: z.string().email('Invalid email address').optional().or(z.literal('')),
   phone: z.string().optional().or(z.literal('')),
   address: z.string().optional().or(z.literal('')),
+  status: z.enum(['active', 'inactive']).optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-export default function AddOrganizationPage() {
+export default function EditOrganizationPage() {
   const router = useRouter();
+  const params = useParams();
+  const orgId = params?.id as string;
   const queryClient = useQueryClient();
   const [serverError, setServerError] = useState<string | null>(null);
+
+  const { data: detailData, isLoading: isFetching } = useQuery({
+    queryKey: ['adminOrganizationDetail', orgId],
+    queryFn: async () => {
+      const response = await api.get(`/api/admin/organizations/${orgId}`);
+      return response.data;
+    },
+    enabled: !!orgId
+  });
+
+  const org = detailData?.organization;
 
   const {
     register,
@@ -57,33 +70,36 @@ export default function AddOrganizationPage() {
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      type: 'coaching_center',
-    },
+    values: org ? {
+      name: org.name || '',
+      type: org.type || 'coaching_center',
+      email: org.email || '',
+      phone: org.phone || '',
+      address: org.address || '',
+      status: org.status || 'active',
+    } : undefined,
   });
 
   const mutation = useMutation({
     mutationFn: async (values: FormValues) => {
-      // Clean empty strings for optional fields
       const payload = {
         ...values,
         email: values.email || undefined,
         phone: values.phone || undefined,
         address: values.address || undefined,
       };
-      const response = await api.post('/api/organizations', payload);
+      const response = await api.patch(`/api/admin/organizations/${orgId}`, payload);
       return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminOrganizations'] });
-      toast.success('Organization registered successfully');
-      router.push('/dashboard/organizations');
+      queryClient.invalidateQueries({ queryKey: ['adminOrganizationDetail', orgId] });
+      toast.success('Organization updated successfully');
+      router.push('/admin/organizations');
     },
     onError: (err: unknown) => {
       const error = err as { response?: { data?: { message?: string } } };
-      const message = error.response?.data?.message || 'Something went wrong. Please try again.';
-      setServerError(message);
-      toast.error(message);
+      setServerError(error.response?.data?.message || 'Something went wrong. Please try again.');
     },
   });
 
@@ -92,21 +108,29 @@ export default function AddOrganizationPage() {
     mutation.mutate(values);
   };
 
+  if (isFetching) {
+    return (
+      <div className="flex h-[40vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
       {/* Navigation & Header */}
       <div className="flex flex-col gap-4">
-        <Link 
-          href="/dashboard/organizations"
+        <button 
+          onClick={() => router.back()}
           className="group flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors w-fit"
         >
           <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-          Back to Organizations
-        </Link>
+          Back
+        </button>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Add New Organization</h1>
-            <p className="mt-1 text-slate-500 dark:text-slate-400">Initialize a new academic structure on the platform.</p>
+            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Edit Organization</h1>
+            <p className="mt-1 text-slate-500 dark:text-slate-400">Update workspace details for {detailData?.organization?.name}.</p>
           </div>
         </div>
       </div>
@@ -149,7 +173,7 @@ export default function AddOrganizationPage() {
                     name="type"
                     control={control}
                     render={({ field }) => (
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                         <SelectTrigger className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-11 pr-4 py-6 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium">
                           <SelectValue placeholder="Select institution type" />
                         </SelectTrigger>
@@ -157,6 +181,30 @@ export default function AddOrganizationPage() {
                           <SelectItem value="coaching_center" className="rounded-lg">Coaching Center</SelectItem>
                           <SelectItem value="institution" className="rounded-lg">Educational Institution</SelectItem>
                           <SelectItem value="enterprise" className="rounded-lg">Corporate Enterprise</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                  Status
+                </label>
+                <div className="relative group">
+                  <CheckCircle2 className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors z-10 pointer-events-none" />
+                  <Controller
+                    name="status"
+                    control={control}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                        <SelectTrigger className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-11 pr-4 py-6 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-slate-700 dark:text-slate-300">
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-slate-200 dark:border-slate-700">
+                          <SelectItem value="active" className="rounded-lg">Active</SelectItem>
+                          <SelectItem value="inactive" className="rounded-lg">Inactive</SelectItem>
                         </SelectContent>
                       </Select>
                     )}
@@ -226,36 +274,31 @@ export default function AddOrganizationPage() {
             </motion.div>
           )}
 
-          <div className="flex items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-800 pt-8 mt-4">
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
-              <CheckCircle2 className="h-4 w-4 text-blue-500" />
-              Registration Date: {dayjs().format('MMMM DD, YYYY')}
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              <Link
-                href="/dashboard/organizations"
-                className="w-full sm:w-auto px-8 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 transition-all text-center"
-              >
-                Cancel
-              </Link>
-              <Button
-                type="submit"
-                disabled={mutation.isPending}
-                className="w-full sm:w-auto h-12 min-w-[200px] relative px-8 py-3 rounded-xl bg-linear-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/25 text-sm font-bold text-white transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:hover:scale-100 flex items-center justify-center gap-2 overflow-hidden"
-              >
-                {mutation.isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Generating Workspace...
-                  </>
-                ) : (
-                  <>
-                    Register Organization
-                  </>
-                )}
-              </Button>
-            </div>
+          <div className="flex items-center justify-end gap-4 border-t border-slate-100 dark:border-slate-800 pt-8 mt-4">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="px-8 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+            >
+              Cancel
+            </button>
+            <Button
+              type="submit"
+              disabled={mutation.isPending}
+              className="min-w-[200px] h-12 flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-linear-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/25 text-sm font-bold text-white transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70"
+            >
+              {mutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Saving Changes...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  Save Changes
+                </>
+              )}
+            </Button>
           </div>
         </form>
       </motion.div>
