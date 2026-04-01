@@ -45,14 +45,14 @@ const navigation = [
   // ── Organization Users ─────────────────────
   {
     name: "My Organization",
-    href: "/organization/my-organization",
+    href: "/organization",
     icon: Building2,
     roles: ["org_owner", "org_admin", "org_teacher", "org_staff"],
     section: "organization"
   },
   {
     name: "Members",
-    href: "/organization/my-organization/members",
+    href: "/organization/members",
     icon: Users,
     roles: ["org_owner", "org_admin", "org_teacher"],
     section: "organization"

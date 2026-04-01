@@ -123,7 +123,7 @@ export default function MyOrganizationPage() {
         </div>
         {canManageMembers && (
           <Link
-            href="/organization/my-organization/members"
+            href="/organization/members"
             className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/20 px-5 py-2.5 text-sm font-semibold text-white transition-all transform hover:scale-[1.02] active:scale-[0.98]"
           >
             <Users className="h-4 w-4" />
@@ -341,7 +341,7 @@ export default function MyOrganizationPage() {
             </h3>
             {canManageMembers && (
               <Link
-                href="/organization/my-organization/members"
+                href="/organization/members"
                 className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors flex items-center gap-1"
               >
                 View All <ArrowRight className="h-3 w-3" />
@@ -396,7 +396,7 @@ export default function MyOrganizationPage() {
               <p className="text-sm text-slate-500">No members yet</p>
               {canManageMembers && (
                 <Link
-                  href="/organization/my-organization/members"
+                  href="/organization/members"
                   className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
                 >
                   <UserPlus className="h-3 w-3" /> Add Members
@@ -421,7 +421,7 @@ export default function MyOrganizationPage() {
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Link
-              href="/organization/my-organization/members"
+              href="/organization/members"
               className="flex items-center gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50/50 dark:hover:bg-blue-500/5 transition-all group"
             >
               <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-500/10 group-hover:bg-blue-100 dark:group-hover:bg-blue-500/20 transition-colors">
