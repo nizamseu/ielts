@@ -132,87 +132,114 @@ export default function StudentsPage() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {students.map((student: any, i: number) => (
-              <motion.div
-                key={student._id}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: i * 0.04 }}
-              >
-                <Link
-                  href={`/organization/students/${student._id}`}
-                  className="group block bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 hover:border-emerald-500/40 dark:hover:border-emerald-500/30 hover:shadow-lg transition-all relative overflow-hidden"
-                >
-                  {/* Hover accent bar */}
-                  <div className="absolute top-0 left-0 right-0 h-[3px] bg-linear-to-r from-emerald-500 to-teal-400 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300" />
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-xs text-slate-500 uppercase tracking-wider font-semibold">
+                    <th className="px-6 py-4">Student</th>
+                    <th className="px-6 py-4 hidden sm:table-cell">Contact & Identity</th>
+                    <th className="px-6 py-4 hidden md:table-cell">Joined</th>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+                  {students.map((student: any, i: number) => (
+                    <motion.tr 
+                      key={student._id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.2, delay: i * 0.03 }}
+                      className="group hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors"
+                    >
+                      {/* Name & Email */}
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <Link href={`/organization/students/${student._id}`} className="shrink-0">
+                            <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-slate-700 hover:border-emerald-500/50 transition-colors">
+                              {student.image ? (
+                                <img src={student.image} alt={student.name} className="h-full w-full object-cover" />
+                              ) : (
+                                <span className="text-sm font-bold text-slate-400 dark:text-slate-500">
+                                  {student.name?.charAt(0)?.toUpperCase() || '?'}
+                                </span>
+                              )}
+                            </div>
+                          </Link>
+                          <div className="min-w-0">
+                            <Link href={`/organization/students/${student._id}`} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
+                              <p className="font-semibold text-slate-900 dark:text-white truncate">{student.name}</p>
+                            </Link>
+                            <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-500">
+                              <Mail className="h-3 w-3" />
+                              <span className="truncate">{student.email}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
 
-                  <div className="flex items-start gap-4">
-                    {/* Avatar */}
-                    <div className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden border-2 border-white dark:border-slate-700 shadow-sm shrink-0">
-                      {student.image ? (
-                        <img src={student.image} alt={student.name} className="h-full w-full object-cover rounded-2xl" />
-                      ) : (
-                        <span className="text-xl font-bold text-slate-400 dark:text-slate-500">
-                          {student.name?.charAt(0)?.toUpperCase() || '?'}
-                        </span>
-                      )}
-                    </div>
+                      {/* Contact & Identity */}
+                      <td className="px-6 py-4 hidden sm:table-cell align-top space-y-2">
+                        {student.phone ? (
+                          <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 mt-1">
+                            <Phone className="h-3 w-3" />
+                            {student.phone}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-slate-400 italic mt-1 block">No phone provided</span>
+                        )}
+                        <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                          {student.passportNo && (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 text-[10px] font-medium border border-blue-100 dark:border-blue-500/20">
+                              <ShieldCheck size={10} /> {student.passportNo}
+                            </span>
+                          )}
+                          {student.nationality && (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 text-[10px] font-medium border border-slate-200 dark:border-slate-700">
+                              <Globe size={10} /> {student.nationality}
+                            </span>
+                          )}
+                        </div>
+                      </td>
 
-                    {/* Name & Email */}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
-                        {student.name}
-                      </h3>
-                      <p className="text-xs text-slate-500 truncate mt-0.5 flex items-center gap-1.5">
-                        <Mail className="h-3 w-3 shrink-0" />
-                        {student.email}
-                      </p>
-                      {student.phone && (
-                        <p className="text-xs text-slate-400 truncate mt-0.5 flex items-center gap-1.5">
-                          <Phone className="h-3 w-3 shrink-0" />
-                          {student.phone}
-                        </p>
-                      )}
-                    </div>
+                      {/* Joined */}
+                      <td className="px-6 py-4 hidden md:table-cell align-top text-xs text-slate-500">
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <Calendar size={12} className="text-slate-400" />
+                          {student.createdAt ? new Date(student.createdAt).toLocaleDateString() : 'N/A'}
+                        </div>
+                      </td>
 
-                    {/* Arrow icon */}
-                    <ArrowRight className="h-4 w-4 text-slate-300 dark:text-slate-600 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all shrink-0 mt-1" />
-                  </div>
+                      {/* Status */}
+                      <td className="px-6 py-4 align-top">
+                        <div className="mt-0.5">
+                          <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                            student.status === 'active'
+                              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20'
+                              : student.status === 'blocked'
+                              ? 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400 border-red-200 dark:border-red-500/20'
+                              : 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border-amber-200 dark:border-amber-500/20'
+                          }`}>
+                            {student.status || 'active'}
+                          </span>
+                        </div>
+                      </td>
 
-                  {/* Tags */}
-                  <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-                    {/* Status Badge */}
-                    <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider ${
-                      student.status === 'active'
-                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'
-                        : student.status === 'blocked'
-                        ? 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400'
-                        : 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
-                    }`}>
-                      {student.status || 'active'}
-                    </span>
-
-                    {student.passportNo && (
-                      <span className="px-2 py-0.5 rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 text-[10px] font-medium flex items-center gap-1">
-                        <ShieldCheck size={10} /> {student.passportNo}
-                      </span>
-                    )}
-
-                    {student.nationality && (
-                      <span className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 text-[10px] font-medium flex items-center gap-1">
-                        <Globe size={10} /> {student.nationality}
-                      </span>
-                    )}
-
-                    <span className="ml-auto text-[10px] text-slate-400 flex items-center gap-1">
-                      <Calendar size={10} />
-                      {student.createdAt ? new Date(student.createdAt).toLocaleDateString() : 'N/A'}
-                    </span>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
+                      {/* Actions */}
+                      <td className="px-6 py-4 text-right align-middle">
+                        <Link
+                          href={`/organization/students/${student._id}`}
+                          className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white dark:bg-slate-800 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:text-emerald-400 dark:hover:bg-emerald-500/10 border border-slate-200 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-emerald-500/30 transition-all shadow-sm"
+                        >
+                          <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                        </Link>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Pagination */}
