@@ -13,6 +13,7 @@ import {
   Users,
   UserCog,
   BookOpen,
+  GraduationCap,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { signOut, useSession } from "@/lib/auth-client";
@@ -44,16 +45,23 @@ const navigation = [
   // ── Organization Users ─────────────────────
   {
     name: "My Organization",
-    href: "/admin/my-organization",
+    href: "/organization/my-organization",
     icon: Building2,
     roles: ["org_owner", "org_admin", "org_teacher", "org_staff"],
     section: "organization"
   },
   {
     name: "Members",
-    href: "/admin/my-organization/members",
+    href: "/organization/my-organization/members",
     icon: Users,
     roles: ["org_owner", "org_admin", "org_teacher"],
+    section: "organization"
+  },
+  {
+    name: "Students",
+    href: "/organization/students",
+    icon: GraduationCap,
+    roles: ["platform_owner", "platform_admin", "org_owner", "org_admin", "org_teacher"],
     section: "organization"
   },
   // ── Common Items ───────────────────────────

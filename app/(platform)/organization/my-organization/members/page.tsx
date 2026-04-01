@@ -145,7 +145,7 @@ export default function MembersPage() {
       {/* Header */}
       <div className="flex flex-col gap-4">
         <Link
-          href="/admin/my-organization"
+          href="/organization/my-organization"
           className="group flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors w-fit"
         >
           <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
