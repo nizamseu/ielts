@@ -40,19 +40,19 @@ const navigation = [
   },
   { 
     name: "Exams", 
-    href: "/admin/exams", 
+    href: "/organization/exams", 
     icon: FileText,
     roles: ["platform_owner", "platform_admin", "org_owner", "org_admin", "org_teacher", "student"]
   },
   { 
     name: "Reviews", 
-    href: "/admin/reviews", 
+    href: "/organization/reviews", 
     icon: ShieldAlert,
     roles: ["platform_owner", "platform_admin", "org_owner", "org_admin"]
   },
   {
     name: "Subscriptions",
-    href: "/admin/subscriptions",
+    href: "/organization/subscriptions",
     icon: CreditCard,
     roles: ["platform_owner", "platform_admin", "org_owner", "student"]
   },
