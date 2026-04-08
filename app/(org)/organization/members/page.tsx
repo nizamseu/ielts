@@ -75,7 +75,7 @@ const ROLE_CONFIG: Record<string, { label: string; icon: any; color: string; bgC
 const ASSIGNABLE_ROLES = ['org_admin', 'org_teacher', 'org_staff', 'student'];
 const FILTER_ROLES = ['all', 'org_admin', 'org_teacher', 'org_staff', 'student'];
 
-export default function MembersPage() {
+export default function OrgMembersPage() {
   const { data: session } = authClient.useSession();
   const userRole = (session?.user as any)?.role || 'student';
   const queryClient = useQueryClient();

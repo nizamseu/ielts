@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { useQuery } from '@tanstack/react-query';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { authClient } from '@/lib/auth-client';
+import { toast } from 'sonner';
 import Link from 'next/link';
 import {
   GraduationCap,
@@ -20,17 +21,25 @@ import {
   UserCircle2,
   ChevronLeft,
   ChevronRight,
+  UserPlus,
+  X,
+  Check,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export default function StudentsPage() {
   const { data: session } = authClient.useSession();
   const userRole = (session?.user as any)?.role || 'student';
+  const queryClient = useQueryClient();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [showAddModal, setShowAddModal] = useState(false);
   const limit = 12;
+
+  const canManage = ['platform_owner', 'platform_admin', 'org_owner', 'org_admin'].includes(userRole);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['orgStudents', searchQuery, statusFilter, currentPage],
@@ -70,6 +79,16 @@ export default function StudentsPage() {
             </div>
           </div>
         </div>
+
+        {canManage && (
+          <Button
+            onClick={() => setShowAddModal(true)}
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 shadow-md shadow-emerald-500/20 px-5 py-2.5 text-sm font-semibold text-white transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <UserPlus className="h-4 w-4" />
+            Add Student
+          </Button>
+        )}
       </div>
 
       {/* Filters Row */}
@@ -297,6 +316,163 @@ export default function StudentsPage() {
           )}
         </>
       )}
+
+      {/* Add Student Modal */}
+      <AnimatePresence>
+        {showAddModal && (
+          <AddStudentModal onClose={() => setShowAddModal(false)} />
+        )}
+      </AnimatePresence>
     </div>
+  );
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Add Student Modal 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function AddStudentModal({ onClose }: { onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    role: 'student',
+    phone: '',
+  });
+
+  const mutation = useMutation({
+    mutationFn: async (data: typeof formData) => {
+      const response = await api.post('/api/organizations/members/invite', data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orgStudents'] });
+      queryClient.invalidateQueries({ queryKey: ['orgDashboard'] });
+      toast.success('Student added successfully');
+      onClose();
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Failed to add student');
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name.trim() || !formData.email.trim()) {
+      toast.error('Name and email are required');
+      return;
+    }
+    mutation.mutate(formData);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-8 pt-8 pb-4">
+          <div>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Add New Student</h2>
+            <p className="text-sm text-slate-500 mt-1">Invite a student to your organization</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          >
+            <X className="h-5 w-5 text-slate-400" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="px-8 pb-8 space-y-5">
+          {/* Name */}
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+              Full Name <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <UserCircle2 className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input
+                placeholder="John Doe"
+                value={formData.name}
+                onChange={(e) => setFormData(p => ({ ...p, name: e.target.value }))}
+                className="pl-10 h-11 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Email */}
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+              Email Address <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input
+                type="email"
+                placeholder="john@example.com"
+                value={formData.email}
+                onChange={(e) => setFormData(p => ({ ...p, email: e.target.value }))}
+                className="pl-10 h-11 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Phone (Optional) */}
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+              Phone <span className="text-slate-400 text-xs font-normal">(optional)</span>
+            </label>
+            <Input
+              placeholder="+880 1XXX-XXXXXX"
+              value={formData.phone}
+              onChange={(e) => setFormData(p => ({ ...p, phone: e.target.value }))}
+              className="h-11 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl"
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onClose}
+              className="rounded-xl px-6"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={mutation.isPending}
+              className="rounded-xl px-6 bg-linear-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 shadow-md shadow-emerald-500/20 text-white font-semibold"
+            >
+              {mutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Adding...
+                </>
+              ) : (
+                <>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Add Student
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
+      </motion.div>
+    </motion.div>
   );
 }
