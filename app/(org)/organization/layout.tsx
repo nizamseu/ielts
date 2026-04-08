@@ -1,4 +1,4 @@
-import { Sidebar } from '@/components/Sidebar';
+import { OrgSidebar } from '@/components/OrgSidebar';
 import { UserMenu } from '@/components/UserMenu';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { PageTransition } from '@/components/PageTransition';
@@ -11,7 +11,7 @@ export default function OrganizationLayout({
   return (
     <div className="flex h-screen w-full bg-slate-50 dark:bg-[#0a0f1c] overflow-hidden">
       {/* Sidebar Component */}
-      <Sidebar />
+      <OrgSidebar />
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto">
