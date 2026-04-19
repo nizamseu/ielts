@@ -120,7 +120,7 @@ function QuestionRenderer({
       </div>
 
       {/* Answer Input Based on Type */}
-      {type === 'multiple_choice' && options.length > 0 && (
+      {type === 'multiple_choice_single' && options.length > 0 && (
         <div className="space-y-2">
           {options.map((opt: string, i: number) => (
             <button
@@ -150,7 +150,7 @@ function QuestionRenderer({
         </div>
       )}
 
-      {type === 'true_false_ng' && (
+      {type === 'true_false_not_given' && (
         <div className="flex gap-3">
           {['True', 'False', 'Not Given'].map(opt => (
             <button
