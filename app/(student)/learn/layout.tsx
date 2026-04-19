@@ -16,7 +16,7 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
           
           <nav className="hidden md:flex items-center gap-6">
             <a href="/learn" className="text-sm font-semibold text-blue-600 dark:text-blue-400">Dashboard</a>
-            <a href="/learn/exams" className="text-sm font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">Exams</a>
+            <a href="/learn/exam" className="text-sm font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">Exams</a>
             <a href="/learn/results" className="text-sm font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">Results</a>
           </nav>
 
